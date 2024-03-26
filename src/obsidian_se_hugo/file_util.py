@@ -1,9 +1,6 @@
 import os
 import shutil
 import logging
-import re
-
-extension_pattern = r"\.[a-z]+$"  # Matches a dot (.) followed by lowercase letters
 
 def delete_target(destination):
     if os.path.isdir(destination):
@@ -29,7 +26,7 @@ def create_file_dictionary(directory):
             file_dict[file] = file_path
     return file_dict
 
-def has_extension(file_string):
+def has_extension(file_name):
     """Checks if a string has a file extension using regex.
 
     Args:
@@ -38,4 +35,6 @@ def has_extension(file_string):
     Returns:
         True if the string has an extension, False otherwise.
     """
-    return bool(re.search(extension_pattern, file_string))
+    _, ext = os.path.splitext(file_name)
+    return ext != ""
+    

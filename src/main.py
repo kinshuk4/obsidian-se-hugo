@@ -42,7 +42,7 @@ def main():
     file_to_dir_dict = create_file_dictionary(origin)
     logging.info("FILE TO DIR DICT: %d", len(file_to_dir_dict))
 
-    traverse_graph(to_be_published_list, set(), file_to_dir_dict)
+    traverse_graph(to_be_published_list, file_to_dir_dict)
 
     # logging.info("COPYING Obsidian vault to target folder %s", destination_str)
     # copy_source_to_target(origin, destination)
