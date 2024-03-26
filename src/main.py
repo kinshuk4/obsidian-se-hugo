@@ -6,7 +6,7 @@ import sys
 from obsidian_se_hugo.markdown_util import get_markdown_files_to_publish
 from obsidian_se_hugo.file_util import delete_target
 from obsidian_se_hugo.outedge_processor import traverse_graph
-
+from obsidian_se_hugo.file_util import create_file_dictionary
 def main():
     pathlib.Path("logs").mkdir(parents=True, exist_ok=True)
     # Create logs/ dir if it does not exist
@@ -38,7 +38,11 @@ def main():
 
     excluded_dirs = [".git"]
     to_be_published_list = get_markdown_files_to_publish(origin)
-    traverse_graph(to_be_published_list)
+
+    file_to_dir_dict = create_file_dictionary(origin)
+    logging.info("FILE TO DIR DICT: %d", len(file_to_dir_dict))
+
+    traverse_graph(to_be_published_list, set(), file_to_dir_dict)
 
     # logging.info("COPYING Obsidian vault to target folder %s", destination_str)
     # copy_source_to_target(origin, destination)
