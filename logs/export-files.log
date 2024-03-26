@@ -1,0 +1,4 @@
+INFO:root:ORIGIN: /Users/kinshuk.chandra/lyf/syncs/Dropbox/r00t/edu/Obsidian/apnotes-ob/r , DESTINATION: /Users/kinshuk.chandra/lyf/scm/github/k2/k5kc-site
+INFO:root:DELETING target folder /Users/kinshuk.chandra/lyf/scm/github/k2/k5kc-site
+WARNING:root:DESTINATION folder /Users/kinshuk.chandra/lyf/scm/github/k2/k5kc-site/content/notes does not exist.
+INFO:root:TO PUBLISH: /Users/kinshuk.chandra/lyf/syncs/Dropbox/r00t/edu/Obsidian/apnotes-ob/r/subjects/engg/cs/1.fields/1.theoretical/3.dsa/2.ds/1.array/1.1d-array/problems/ranged-array/list/Find Duplicate Number in array containing n+1 numbers between 1 and n.md
