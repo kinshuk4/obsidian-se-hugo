@@ -77,13 +77,13 @@ def bfs(source_list: list[str], file_dict: dict[str, str]):
         node = queue.popleft()
         if node not in visited:
             visited.add(node)
-            print(node)
-            reachable_links.add(node)
+            base_file_name = os.path.basename(node)
+            base_file_name_wo_ext, _ = os.path.splitext(base_file_name)
+            reachable_links.add(base_file_name_wo_ext)
             outgoing_links = read_markdown_file(node)
             neighbors = []
             for (link, _) in outgoing_links:
                 has_ext = has_extension(link)
-                print("link: %s, has_ext: %b", link, has_ext)
                 if has_ext:
                     reachable_assets.add(link)
                 else:
