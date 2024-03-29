@@ -37,4 +37,7 @@ def has_extension(file_name):
     """
     _, ext = os.path.splitext(file_name)
     return ext != ""
-    
+
+def create_directory_if_not_exists(dir_path: str):
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)

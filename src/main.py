@@ -3,9 +3,10 @@ import logging
 import pathlib
 import sys
 
+from obsidian_se_hugo.hugo_util import convert_file_to_hugo_format
 from obsidian_se_hugo.markdown_util import get_markdown_files_to_publish
-from obsidian_se_hugo.file_util import delete_target
-from obsidian_se_hugo.outedge_processor import traverse_graph
+from obsidian_se_hugo.file_util import create_directory_if_not_exists, delete_target
+from obsidian_se_hugo.graph_util import grow_publish_list
 from obsidian_se_hugo.file_util import create_file_dictionary
 def main():
     pathlib.Path("logs").mkdir(parents=True, exist_ok=True)
@@ -23,10 +24,11 @@ def main():
     )
     destination_str = "/Users/kinshuk.chandra/lyf/scm/github/k2/k5kc-site"
     destination_content_dir_str = "content/notes"
+    notes_destination_dir = destination_str + "/" + destination_content_dir_str
     destination_image_dir_str = "content/images/obs"
 
     origin = pathlib.Path(origin_str)
-    destination = pathlib.Path(destination_str + "/" + destination_content_dir_str)
+    destination = pathlib.Path(notes_destination_dir)
 
     logging.info("ORIGIN: %s , DESTINATION: %s", origin_str, destination_str)
     if not os.path.isdir(origin):
@@ -36,13 +38,20 @@ def main():
     logging.info("DELETING target folder %s", destination_str)
     delete_target(destination)
 
+    create_directory_if_not_exists(notes_destination_dir)
+
     excluded_dirs = [".git"]
-    to_be_published_list = get_markdown_files_to_publish(origin)
+    initial_publish_list = get_markdown_files_to_publish(origin)
 
     file_to_dir_dict = create_file_dictionary(origin)
     logging.info("FILE TO DIR DICT: %d", len(file_to_dir_dict))
 
-    traverse_graph(to_be_published_list, file_to_dir_dict)
+    reachable_links, reachable_assets = grow_publish_list(initial_publish_list, file_to_dir_dict)
+
+    for link in reachable_links:
+        file_path = file_to_dir_dict[link + ".md"]
+        new_path = destination_str + "/" + destination_content_dir_str + "/" + link + ".md"
+        convert_file_to_hugo_format(file_path, new_path)
 
     # logging.info("COPYING Obsidian vault to target folder %s", destination_str)
     # copy_source_to_target(origin, destination)
