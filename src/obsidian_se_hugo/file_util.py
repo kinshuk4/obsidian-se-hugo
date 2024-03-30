@@ -3,6 +3,7 @@ import shutil
 import logging
 import subprocess
 
+from obsidian_se_hugo.hugo_util import slugify_filename
 from obsidian_se_hugo.markdown_util import read_json_from_markdown
 
 
@@ -65,14 +66,16 @@ def copy_assets(asset_file_names, destination_folder, file_to_path_dict: dict):
             actual_asset_file_name = asset_file_name + ".md"
             source_path = file_to_path_dict[actual_asset_file_name]
             svg_filename = os.path.splitext(filename)[0] + ".svg"
-            destination_path = os.path.join(destination_folder, svg_filename)
+            slugified_svg_filename = slugify_filename(svg_filename)
+            destination_path = os.path.join(destination_folder, slugified_svg_filename)
             result = process_excalidraw_file(source_path, destination_path)
             if not result:
                 print(f"Failed to convert {asset_file_name} to SVG.")
                 continue  # Skip to the next file
         else:
             source_path = file_to_path_dict[asset_file_name]
-            destination_path = os.path.join(destination_folder, filename)
+            slugified_filename = slugify_filename(filename)
+            destination_path = os.path.join(destination_folder, slugified_filename)
             shutil.copy(source_path, destination_path)
 
 

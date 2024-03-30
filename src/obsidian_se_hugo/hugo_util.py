@@ -1,6 +1,7 @@
 import re
 import frontmatter
 from datetime import datetime
+import os
 
 
 def convert_date_to_iso(date_str):
@@ -35,6 +36,8 @@ def convert_to_hugo_format(match):
     link = match.group(1).strip()
     alias = match.group(3) if match.group(2) else link
 
+    link = slugify_filename(link)
+
     if link.lower().endswith(".excalidraw"):
         link = re.sub(r"\.excalidraw$", ".excalidraw.svg", link, flags=re.IGNORECASE)
 
@@ -42,7 +45,7 @@ def convert_to_hugo_format(match):
         # Format the markdown for an image
         return "[{}]({})".format(alias, "/blog/notes/images/" + link)
 
-    hugo_link = slugify_filename(link) + ".md"
+    hugo_link = link + ".md"
     # Replace with your actual Hugo shortcode format for links.
     # Here I'm assuming a hypothetical Hugo shortcode for links like: {{< link "url" "text" >}}
     return '[{}]({{{{< relref "{}" >}}}})'.format(alias, hugo_link)
@@ -64,13 +67,15 @@ def convert_file_to_hugo_format(input_file_path, output_file_path):
 
 
 def slugify_filename(input_filename):
-    slugified = input_filename.lower()
-    slugified = re.sub(r"\.md$", "", slugified)
-    slugified = slugified.replace(" ", "-")
-    # Remove or replace other non-URL-safe characters, as needed
-    # This regex removes any characters that are not alphanumeric, hyphens, or periods
-    slugified = re.sub(r"[^\w\.-]", "", slugified)
-    return slugified
+    # Separate the base of the filename from the extension
+    input_filename = input_filename.lower()
+    filename_base, file_extension = os.path.splitext(input_filename)
+    # Replace spaces with hyphens, remove multiple hyphens, and remove any leftover invalid characters
+    slugified = re.sub(r"\s+", "-", filename_base)
+    slugified = re.sub(r"-+", "-", slugified)
+    slugified = re.sub(r"[^\w\-]", "", slugified)
+    # Return the slugified filename with the original file extension
+    return slugified + file_extension
 
 
 def convert_and_copy_files_to_hugo_format(
