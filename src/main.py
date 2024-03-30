@@ -3,11 +3,13 @@ import logging
 import pathlib
 import sys
 
-from obsidian_se_hugo.hugo_util import convert_file_to_hugo_format
+from obsidian_se_hugo.hugo_util import convert_files_to_hugo_format
 from obsidian_se_hugo.markdown_util import get_markdown_files_to_publish
 from obsidian_se_hugo.file_util import create_directory_if_not_exists, delete_target
 from obsidian_se_hugo.graph_util import grow_publish_list
 from obsidian_se_hugo.file_util import create_file_dictionary
+
+
 def main():
     pathlib.Path("logs").mkdir(parents=True, exist_ok=True)
     # Create logs/ dir if it does not exist
@@ -46,13 +48,15 @@ def main():
     file_to_dir_dict = create_file_dictionary(origin)
     logging.info("FILE TO DIR DICT: %d", len(file_to_dir_dict))
 
-    reachable_links, reachable_assets = grow_publish_list(initial_publish_list, file_to_dir_dict)
+    reachable_links, reachable_assets = grow_publish_list(
+        initial_publish_list, file_to_dir_dict
+    )
 
-    for link in reachable_links:
-        file_path = file_to_dir_dict[link + ".md"]
-        new_path = destination_str + "/" + destination_content_dir_str + "/" + link + ".md"
-        convert_file_to_hugo_format(file_path, new_path)
+    convert_files_to_hugo_format(
+        reachable_links, destination_str, destination_content_dir_str, file_to_dir_dict
+    )
 
+    
     # logging.info("COPYING Obsidian vault to target folder %s", destination_str)
     # copy_source_to_target(origin, destination)
 

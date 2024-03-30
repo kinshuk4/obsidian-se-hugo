@@ -21,3 +21,9 @@ def convert_file_to_hugo_format(input_file_path, output_file_path):
 
     with open(output_file_path, "w", encoding="utf-8") as output_file:
         output_file.write(new_content)
+
+def convert_files_to_hugo_format(reachable_links, destination_str, destination_content_dir_str, file_to_dir_dict):
+    for link in reachable_links:
+        file_path = file_to_dir_dict[link + ".md"]
+        new_path = destination_str + "/" + destination_content_dir_str + "/" + link + ".md"
+        convert_file_to_hugo_format(file_path, new_path)
