@@ -5,7 +5,7 @@ import sys
 
 from obsidian_se_hugo.hugo_util import convert_and_copy_files_to_hugo_format
 from obsidian_se_hugo.markdown_util import get_markdown_files_to_publish
-from obsidian_se_hugo.file_util import create_directory_if_not_exists, delete_target
+from obsidian_se_hugo.file_util import copy_assets, create_directory_if_not_exists, delete_target
 from obsidian_se_hugo.graph_util import grow_publish_list
 from obsidian_se_hugo.file_util import create_file_dictionary
 
@@ -27,7 +27,8 @@ def main():
     destination_str = "/Users/kinshuk.chandra/lyf/scm/github/k2/k5kc-site"
     destination_content_dir_str = "content/blog/notes"
     notes_destination_dir = destination_str + "/" + destination_content_dir_str
-    destination_image_dir_str = "content/images/obs"
+    destination_image_dir_str = "content/blog/notes/images"
+    images_destination_dir = destination_str + "/" + destination_image_dir_str
 
     origin = pathlib.Path(origin_str)
     destination = pathlib.Path(notes_destination_dir)
@@ -55,6 +56,8 @@ def main():
     convert_and_copy_files_to_hugo_format(
         reachable_links, destination_str, destination_content_dir_str, file_to_dir_dict
     )
+
+    copy_assets(reachable_assets, images_destination_dir)
 
 
     # logging.info("COPYING Obsidian vault to target folder %s", destination_str)
