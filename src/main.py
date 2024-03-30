@@ -3,7 +3,7 @@ import logging
 import pathlib
 import sys
 
-from obsidian_se_hugo.hugo_util import convert_files_to_hugo_format
+from obsidian_se_hugo.hugo_util import convert_and_copy_files_to_hugo_format
 from obsidian_se_hugo.markdown_util import get_markdown_files_to_publish
 from obsidian_se_hugo.file_util import create_directory_if_not_exists, delete_target
 from obsidian_se_hugo.graph_util import grow_publish_list
@@ -52,7 +52,7 @@ def main():
         initial_publish_list, file_to_dir_dict
     )
 
-    convert_files_to_hugo_format(
+    convert_and_copy_files_to_hugo_format(
         reachable_links, destination_str, destination_content_dir_str, file_to_dir_dict
     )
 
