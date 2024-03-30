@@ -33,15 +33,19 @@ wiki_link_pattern = re.compile(r"\[\[(.*?)(\|(.*?))?\]\]")
 # Function to convert wiki link to Hugo format
 def convert_to_hugo_format(match):
     link = match.group(1).strip()
-    if link.endswith("excalidraw"):
-        # Do something if the link ends with "excalidraw"
-        return
     alias = match.group(3) if match.group(2) else link
+
+    if link.lower().endswith(".excalidraw"):
+        link = re.sub(r'\.excalidraw$', '.svg', link, flags=re.IGNORECASE)
+
+    if re.search(r'\.(png|jpg|jpeg|gif|svg|webp)$', link, re.IGNORECASE):
+        # Format the markdown for an image
+        return '![{}]({})'.format(alias, '/blog/notes/images/' + link)
+
     hugo_link = slugify_filename(link) + ".md"
     # Replace with your actual Hugo shortcode format for links.
     # Here I'm assuming a hypothetical Hugo shortcode for links like: {{< link "url" "text" >}}
     return '[{}]({{{{< relref "{}" >}}}})'.format(alias, hugo_link)
-
 
 def convert_file_to_hugo_format(input_file_path, output_file_path):
     post = frontmatter.load(input_file_path)
