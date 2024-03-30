@@ -1,9 +1,5 @@
 import logging
-
 import frontmatter
-import logging
-
-import logging
 import re
 
 def to_be_published(file):
@@ -51,3 +47,14 @@ def extract_wiki_links(markdown_text):
         wiki_links.append((link, alias))
 
     return wiki_links
+
+
+# Read the markdown file and extract JSON content
+def read_json_from_markdown(markdown_path):
+    with open(markdown_path, 'r', encoding='utf8') as file:
+        content = file.read()
+        # This regex assumes that your JSON is correctly formatted and indented
+        matches = re.search(r'```json\n([\s\S]*?)\n```', content)
+        if matches:
+            return matches.group(1).strip()
+    return None

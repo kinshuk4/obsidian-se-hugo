@@ -57,7 +57,7 @@ def main():
         reachable_links, destination_str, destination_content_dir_str, file_to_dir_dict
     )
 
-    copy_assets(reachable_assets, images_destination_dir)
+    copy_assets(reachable_assets, images_destination_dir, file_to_dir_dict)
 
 
     # logging.info("COPYING Obsidian vault to target folder %s", destination_str)

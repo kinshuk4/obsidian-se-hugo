@@ -3,6 +3,8 @@ import shutil
 import logging
 import subprocess
 
+from obsidian_se_hugo.markdown_util import read_json_from_markdown
+
 
 def delete_target(destination):
     if os.path.isdir(destination):
@@ -11,7 +13,11 @@ def delete_target(destination):
         logging.warning("DESTINATION folder %s does not exist.", str(destination))
 
 
-def create_file_dictionary(directory):
+def delete_file(file_path):
+    os.remove(file_path)
+
+
+def create_file_dictionary(directory: str) -> dict:
     """
     Creates a dictionary with filenames as keys and their full paths as values.
 
@@ -48,20 +54,56 @@ def create_directory_if_not_exists(dir_path: str):
         os.makedirs(dir_path)
 
 
-def copy_assets(asset_paths, destination_folder):
+def copy_assets(asset_file_names, destination_folder, file_to_path_dict: dict):
     # Ensure that the destination directory exists
     os.makedirs(destination_folder, exist_ok=True)
 
     # Copy each asset from the list to the destination directory
-    for asset_path in asset_paths:
-        filename = os.path.basename(asset_path)
-        if asset_path.lower().endswith(".excalidraw"):
+    for asset_file_name in asset_file_names:
+        filename = os.path.basename(asset_file_name)
+        if asset_file_name.lower().endswith(".excalidraw"):
+            actual_asset_file_name = asset_file_name + ".md"
+            source_path = file_to_path_dict[actual_asset_file_name]
             svg_filename = os.path.splitext(filename)[0] + ".svg"
             destination_path = os.path.join(destination_folder, svg_filename)
-            result = subprocess.run(["excalidraw-to-svg", asset_path, destination_path])
-            if result.returncode != 0:
-                print(f"Failed to convert {asset_path} to SVG.")
+            result = process_excalidraw_file(source_path, destination_path)
+            if not result:
+                print(f"Failed to convert {asset_file_name} to SVG.")
                 continue  # Skip to the next file
         else:
+            source_path = file_to_path_dict[asset_file_name]
             destination_path = os.path.join(destination_folder, filename)
-            shutil.copy(asset_path, destination_path)
+            shutil.copy(source_path, destination_path)
+
+
+def save_to_excalidraw_file(json_content, excalidraw_path):
+    with open(excalidraw_path, "w", encoding="utf8") as file:
+        file.write(json_content)
+
+
+def convert_excalidraw_to_svg(excalidraw_path):
+    # Placeholder for your actual conversion command
+    command = ["excalidraw_export", excalidraw_path]
+    result = subprocess.run(command, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"Error: {result.stderr}")
+        return False
+    return True
+
+
+def process_excalidraw_file(markdown_path, svg_path) -> bool:
+    json_content = read_json_from_markdown(markdown_path)
+    if json_content is not None:
+        # create temp excalidraw file at same location where svg will be generated
+        excalidraw_path = os.path.splitext(svg_path)[0] + ".excalidraw"
+        save_to_excalidraw_file(json_content, excalidraw_path)
+        if convert_excalidraw_to_svg(excalidraw_path):
+            print(f"SVG generated successfully: {svg_path}")
+            delete_file(excalidraw_path)
+            return True
+        else:
+            print("SVG generation failed.")
+            return False
+    else:
+        print("No valid JSON content found in markdown file.")
+        return False
