@@ -25,7 +25,7 @@ def main():
         "/Users/kinshuk.chandra/lyf/syncs/Dropbox/r00t/edu/Obsidian/apnotes-ob/r"
     )
     destination_str = "/Users/kinshuk.chandra/lyf/scm/github/k2/k5kc-site"
-    destination_content_dir_str = "content/notes"
+    destination_content_dir_str = "content/blog/notes"
     notes_destination_dir = destination_str + "/" + destination_content_dir_str
     destination_image_dir_str = "content/images/obs"
 
@@ -56,7 +56,7 @@ def main():
         reachable_links, destination_str, destination_content_dir_str, file_to_dir_dict
     )
 
-    
+
     # logging.info("COPYING Obsidian vault to target folder %s", destination_str)
     # copy_source_to_target(origin, destination)
 

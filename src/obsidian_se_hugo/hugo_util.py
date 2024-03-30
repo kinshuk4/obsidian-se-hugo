@@ -1,4 +1,12 @@
 import re
+import frontmatter
+
+
+def convert_published_to_draft(post):
+    post.metadata["draft"] = False
+    if "published" in post.metadata:
+        del post.metadata["published"]
+
 
 wiki_link_pattern = re.compile(r"\[\[(.*?)(\|(.*?))?\]\]")
 
@@ -13,17 +21,27 @@ def convert_to_hugo_format(match):
 
 
 def convert_file_to_hugo_format(input_file_path, output_file_path):
-    with open(input_file_path, "r", encoding="utf-8") as input_file:
-        content = input_file.read()
+    post = frontmatter.load(input_file_path)
+    convert_published_to_draft(post)
+    print(post.metadata)
 
-        # Replace all wiki links with Hugo format
-        new_content = wiki_link_pattern.sub(convert_to_hugo_format, content)
+    content = post.content
+    new_content = wiki_link_pattern.sub(convert_to_hugo_format, content)
+    post.content = new_content
+    # print(new_content)
+    with open(output_file_path, 'w', encoding='utf-8') as output_file:
+        # Manually serialize the front matter and content
+        front_matter_str = frontmatter.dumps(post)
+        output_file.write(front_matter_str)
 
-    with open(output_file_path, "w", encoding="utf-8") as output_file:
-        output_file.write(new_content)
 
-def convert_files_to_hugo_format(reachable_links, destination_str, destination_content_dir_str, file_to_dir_dict):
+def convert_files_to_hugo_format(
+    reachable_links, destination_str, destination_content_dir_str, file_to_dir_dict
+):
     for link in reachable_links:
+        print("Processing ", link)
         file_path = file_to_dir_dict[link + ".md"]
-        new_path = destination_str + "/" + destination_content_dir_str + "/" + link + ".md"
+        new_path = (
+            destination_str + "/" + destination_content_dir_str + "/" + link + ".md"
+        )
         convert_file_to_hugo_format(file_path, new_path)
