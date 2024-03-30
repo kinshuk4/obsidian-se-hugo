@@ -40,7 +40,7 @@ def convert_to_hugo_format(match):
 
     if re.search(r'\.(png|jpg|jpeg|gif|svg|webp)$', link, re.IGNORECASE):
         # Format the markdown for an image
-        return '![{}]({})'.format(alias, '/blog/notes/images/' + link)
+        return '[{}]({})'.format(alias, '/blog/notes/images/' + link)
 
     hugo_link = slugify_filename(link) + ".md"
     # Replace with your actual Hugo shortcode format for links.
