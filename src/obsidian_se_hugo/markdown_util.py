@@ -47,7 +47,7 @@ def extract_wiki_links(markdown_text: str) -> list[Hyperlink]:
 
 
 # Read the markdown file and extract JSON content
-def read_json_from_markdown(markdown_path):
+def read_json_from_markdown(markdown_path: str) -> str:
     with open(markdown_path, "r", encoding="utf8") as file:
         content = file.read()
         # This regex assumes that your JSON is correctly formatted and indented

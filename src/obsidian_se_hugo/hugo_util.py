@@ -16,7 +16,7 @@ default_allowed_frontmatter_keys_in_hugo = {
 }
 
 
-def convert_date_to_iso(date_str):
+def convert_date_to_iso(date_str: str) -> str:
     # Assuming the format is 'yyyy-mm-dd HH:MM' without seconds
     dt = datetime.strptime(date_str, "%Y-%m-%d %H:%M")
     # Converting to the ISO 8601 format with 'T' separator and 'Z' for UTC timezone
@@ -50,7 +50,7 @@ wiki_link_pattern = re.compile(r"\[\[(.*?)(\|(.*?))?\]\]")
 
 
 # Function to convert wiki link to Hugo format
-def convert_to_hugo_format(match):
+def convert_to_hugo_format(match: re.Match) -> str:
     link = match.group(1).strip()
     alias = match.group(3) if match.group(2) else link
 
@@ -84,7 +84,7 @@ def convert_file_to_hugo_format(
         output_file.write(front_matter_str)
 
 
-def slugify_filename(input_filename):
+def slugify_filename(input_filename: str) -> str:
     # Separate the base of the filename from the extension
     input_filename = input_filename.lower()
     filename_base, file_extension = os.path.splitext(input_filename)
