@@ -1,0 +1,7 @@
+obsidian:
+  root_path: "/Users/kinshuk.chandra/lyf/syncs/Dropbox/r00t/edu/Obsidian/apnotes-ob/r"
+hugo:
+  root_path: "/Users/kinshuk.chandra/lyf/scm/github/k2/k5kc-site"
+  posts_dir: "content/blog/notes"
+  images_dir: "content/blog/notes/images"
+  allowed_frontmatter_keys: []

@@ -1,3 +1,4 @@
+import logging
 import re
 import frontmatter
 from datetime import datetime
@@ -103,7 +104,7 @@ def copy_markdown_files_in_hugo_format(
     allowed_keys=set[str](),
 ):
     for link in reachable_links:
-        print(f"Processing {link}")
+        logging.info(f"Converting ({link}) to hugo format")
         file_path = file_name_to_path_dict[link + ".md"]
         new_file_name = slugify_filename(link)
         new_file_name = new_file_name + ".md"

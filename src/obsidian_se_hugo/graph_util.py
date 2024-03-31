@@ -1,3 +1,4 @@
+import logging
 import os
 from collections import deque
 
@@ -47,6 +48,6 @@ def bfs(
             # Here we add to the queue all adjacent nodes that haven't been visited
             queue.extend(neighbor for neighbor in neighbors if neighbor not in visited)
 
-    print("Reachable Links: ", reachable_links)
-    print("Reachable Assets: ", reachable_assets)
+    logging.info("Reachable Links: ", reachable_links)
+    logging.info("Reachable Assets: ", reachable_assets)
     return reachable_links, reachable_assets

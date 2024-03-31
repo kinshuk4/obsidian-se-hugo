@@ -1,8 +1,8 @@
 import os
 import logging
-import pathlib
 import sys
-
+from pathlib import Path
+from obsidian_se_hugo.config import load_config, Config, ObsidianConfig
 from obsidian_se_hugo.hugo_util import copy_markdown_files_in_hugo_format
 from obsidian_se_hugo.markdown_util import get_explicit_publish_list
 from obsidian_se_hugo.file_util import (
@@ -31,37 +31,34 @@ def configure_logging(log_level=logging.INFO):
 def main():
     configure_logging()
 
-    obsidian_vault_path_str = (
-        "/Users/kinshuk.chandra/lyf/syncs/Dropbox/r00t/edu/Obsidian/apnotes-ob/r"
-    )
+    config: Config = load_config("conf/config.yaml")
 
-    obsidian_vault_path = pathlib.Path(obsidian_vault_path_str)
+    obsidian_vault_path = Path(config.obsidian.root_path)
     if not os.path.isdir(obsidian_vault_path):
-        print("ORIGIN folder does not exist. Aborting!")
+        logging.debug("ORIGIN folder does not exist. Aborting!")
         sys.exit(1)
 
-    hugo_site_path_str = "/Users/kinshuk.chandra/lyf/scm/github/k2/k5kc-site"
-    hugo_site_path = pathlib.Path(hugo_site_path_str)
+    hugo_site_path = Path(config.hugo.root_path)
     if not os.path.isdir(hugo_site_path):
-        print("Destination Parent folder does not exist. Aborting!")
+        logging.debug("Destination Parent folder does not exist. Aborting!")
         sys.exit(1)
 
-    logging.info(
-        f"ORIGIN: {obsidian_vault_path_str}, DESTINATION: {hugo_site_path_str}"
-    )
+    logging.info(f"ORIGIN: {obsidian_vault_path}, DESTINATION: {hugo_site_path}")
 
-    destination_notes_dir = "content/blog/notes"
-    destination_images_dir = "content/blog/notes/images"
+    posts_destination_dir = os.path.join(config.hugo.root_path, config.hugo.posts_dir)
+    images_destination_dir = os.path.join(config.hugo.root_path, config.hugo.images_dir)
 
-    notes_destination_dir = os.path.join(hugo_site_path_str, destination_notes_dir)
-    images_destination_dir = os.path.join(hugo_site_path_str, destination_images_dir)
+    post_destination = Path(posts_destination_dir)
 
-    destination = pathlib.Path(notes_destination_dir)
+    logging.info(f"DELETING target notes dir {post_destination}")
+    delete_target(post_destination)
 
-    logging.info("DELETING target folder %s", hugo_site_path_str)
-    delete_target(destination)
+    # Not useful as for me, images are under posts
+    images_destination = Path(images_destination_dir)
+    logging.info(f"DELETING target notes dir {post_destination}")
+    delete_target(images_destination)
 
-    create_directory_if_not_exists(notes_destination_dir)
+    create_directory_if_not_exists(posts_destination_dir)
 
     initial_explicit_publish_list = get_explicit_publish_list(obsidian_vault_path)
 
@@ -74,9 +71,9 @@ def main():
 
     copy_markdown_files_in_hugo_format(
         reachable_links,
-        notes_destination_dir,
+        posts_destination_dir,
         file_name_to_path_dict,
-        set()
+        config.hugo.allowed_frontmatter_keys,
     )
 
     copy_assets(reachable_assets, images_destination_dir, file_name_to_path_dict)

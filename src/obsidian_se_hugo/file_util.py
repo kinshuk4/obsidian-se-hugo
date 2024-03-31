@@ -86,7 +86,7 @@ def copy_assets(
             )
             result = process_excalidraw_file(source_path, destination_path)
             if not result:
-                print(f"Failed to convert {asset_file_name} to SVG.")
+                logging.error(f"Failed to convert {asset_file_name} to SVG.")
                 continue  # Skip to the next file
         else:
             source_path = file_name_to_path_dict[asset_file_name]
@@ -105,7 +105,7 @@ def convert_excalidraw_to_svg(excalidraw_path):
     command = ["excalidraw_export", excalidraw_path]
     result = subprocess.run(command, capture_output=True, text=True)
     if result.returncode != 0:
-        print(f"Error: {result.stderr}")
+        logging.error(f"Error: {result.stderr}")
         return False
     return True
 
@@ -117,12 +117,10 @@ def process_excalidraw_file(markdown_path, svg_path) -> bool:
         excalidraw_path = os.path.splitext(svg_path)[0] + ".excalidraw"
         save_to_excalidraw_file(json_content, excalidraw_path)
         if convert_excalidraw_to_svg(excalidraw_path):
-            print(f"SVG generated successfully: {svg_path}")
             delete_file(excalidraw_path)
             return True
         else:
-            print("SVG generation failed.")
             return False
     else:
-        print("No valid JSON content found in markdown file.")
+        logging.warning("No valid JSON content found in markdown file.")
         return False
