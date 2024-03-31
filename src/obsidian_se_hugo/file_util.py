@@ -2,9 +2,13 @@ import os
 import shutil
 import logging
 import subprocess
-
+from pathlib import Path
 from obsidian_se_hugo.hugo_util import slugify_filename
 from obsidian_se_hugo.markdown_util import read_json_from_markdown
+
+
+def get_dir_path(directory_path: str):
+    return Path(directory_path)
 
 
 def delete_target(destination):
@@ -18,7 +22,13 @@ def delete_file(file_path):
     os.remove(file_path)
 
 
-def create_file_dictionary(directory: str) -> dict:
+def read_text_file(file_path: str) -> str:
+    with open(file_path, "r") as f:
+        markdown_text = f.read()
+    return markdown_text
+
+
+def create_file_name_to_path_dictionary(directory: str) -> dict[str, Path]:
     """
     Creates a dictionary with filenames as keys and their full paths as values.
 
@@ -55,27 +65,33 @@ def create_directory_if_not_exists(dir_path: str):
         os.makedirs(dir_path)
 
 
-def copy_assets(asset_file_names, destination_folder, file_to_path_dict: dict):
+def copy_assets(
+    asset_file_names: set[str],
+    images_destination_dir: str,
+    file_name_to_path_dict: dict[str, str],
+):
     # Ensure that the destination directory exists
-    os.makedirs(destination_folder, exist_ok=True)
+    os.makedirs(images_destination_dir, exist_ok=True)
 
     # Copy each asset from the list to the destination directory
     for asset_file_name in asset_file_names:
         filename = os.path.basename(asset_file_name)
         if asset_file_name.lower().endswith(".excalidraw"):
             actual_asset_file_name = asset_file_name + ".md"
-            source_path = file_to_path_dict[actual_asset_file_name]
+            source_path = file_name_to_path_dict[actual_asset_file_name]
             svg_filename = os.path.splitext(filename)[0] + ".svg"
             slugified_svg_filename = slugify_filename(svg_filename)
-            destination_path = os.path.join(destination_folder, slugified_svg_filename)
+            destination_path = os.path.join(
+                images_destination_dir, slugified_svg_filename
+            )
             result = process_excalidraw_file(source_path, destination_path)
             if not result:
                 print(f"Failed to convert {asset_file_name} to SVG.")
                 continue  # Skip to the next file
         else:
-            source_path = file_to_path_dict[asset_file_name]
+            source_path = file_name_to_path_dict[asset_file_name]
             slugified_filename = slugify_filename(filename)
-            destination_path = os.path.join(destination_folder, slugified_filename)
+            destination_path = os.path.join(images_destination_dir, slugified_filename)
             shutil.copy(source_path, destination_path)
 
 

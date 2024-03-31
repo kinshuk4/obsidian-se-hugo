@@ -4,6 +4,18 @@ from datetime import datetime
 import os
 
 
+default_allowed_frontmatter_keys_in_hugo = {
+    "title",
+    "draft",
+    "date",
+    "lastmod",
+    "draft",
+    "tags",
+    "categories",
+    "aliases",
+}
+
+
 def convert_date_to_iso(date_str):
     # Assuming the format is 'yyyy-mm-dd HH:MM' without seconds
     dt = datetime.strptime(date_str, "%Y-%m-%d %H:%M")
@@ -11,7 +23,7 @@ def convert_date_to_iso(date_str):
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def change_front_matter(post):
+def change_front_matter(post: frontmatter.Post, allowed_keys: set[str]) -> None:
     if "title" not in post.metadata:
         raise ValueError("Title is missing in front matter.")
 
@@ -26,6 +38,12 @@ def change_front_matter(post):
     if "date_modified" in post.metadata:
         post.metadata["lastmod"] = convert_date_to_iso(post.metadata["date_modified"])
         del post.metadata["date_modified"]
+
+    # Remove extra keys from the markdown
+    allowed_keys = allowed_keys.union(default_allowed_frontmatter_keys_in_hugo)
+    post.metadata = {
+        key: value for key, value in post.metadata.items() if key in allowed_keys
+    }
 
 
 wiki_link_pattern = re.compile(r"\[\[(.*?)(\|(.*?))?\]\]")
@@ -51,15 +69,15 @@ def convert_to_hugo_format(match):
     return '[{}]({{{{< relref "{}" >}}}})'.format(alias, hugo_link)
 
 
-def convert_file_to_hugo_format(input_file_path, output_file_path):
+def convert_file_to_hugo_format(
+    input_file_path: str, output_file_path: str, allowed_keys: set[str] = set()
+) -> None:
     post = frontmatter.load(input_file_path)
-    change_front_matter(post)
-    print(post.metadata)
+    change_front_matter(post, allowed_keys)
 
     content = post.content
     new_content = wiki_link_pattern.sub(convert_to_hugo_format, content)
     post.content = new_content
-    # print(new_content)
     with open(output_file_path, "w", encoding="utf-8") as output_file:
         # Manually serialize the front matter and content
         front_matter_str = frontmatter.dumps(post)
@@ -78,19 +96,16 @@ def slugify_filename(input_filename):
     return slugified + file_extension
 
 
-def convert_and_copy_files_to_hugo_format(
-    reachable_links, destination_str, destination_content_dir_str, file_to_dir_dict
+def copy_markdown_files_in_hugo_format(
+    reachable_links: set[str],
+    notes_destination_dir: str,
+    file_name_to_path_dict: dict[str, str],
+    allowed_keys=set[str](),
 ):
     for link in reachable_links:
-        print("Processing ", link)
-        file_path = file_to_dir_dict[link + ".md"]
+        print(f"Processing {link}")
+        file_path = file_name_to_path_dict[link + ".md"]
         new_file_name = slugify_filename(link)
-        new_path = (
-            destination_str
-            + "/"
-            + destination_content_dir_str
-            + "/"
-            + new_file_name
-            + ".md"
-        )
-        convert_file_to_hugo_format(file_path, new_path)
+        new_file_name = new_file_name + ".md"
+        new_path = os.path.join(notes_destination_dir, new_file_name)
+        convert_file_to_hugo_format(file_path, new_path, allowed_keys)

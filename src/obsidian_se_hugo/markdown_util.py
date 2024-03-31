@@ -1,23 +1,21 @@
 import logging
+from pathlib import Path
 import frontmatter
 import re
-
-def to_be_published(file):
-    post = frontmatter.load(file)
-    if "published" in post.keys():
-        if post["published"] != True:
-            return False
-        else:
-            return True
-
-    logging.debug("File %s has no publish key in frontmatter", str(file))
-    return False
+from .hyperlink import Hyperlink
 
 
-def get_markdown_files_to_publish(origin):
+def should_publish_post_explicitly(file_path: str, publish_key: str = "published"):
+    post = frontmatter.load(file_path)
+    return post.get(publish_key, False)
+
+
+def get_explicit_publish_list(
+    origin: Path, publish_key: str = "published"
+) -> list[str]:
     to_publish = []
     for file in origin.rglob("*.md"):
-        if to_be_published(file):
+        if should_publish_post_explicitly(file, publish_key):
             logging.info("TO PUBLISH: %s", str(file))
             to_publish.append(str(file))
     return to_publish
@@ -26,7 +24,7 @@ def get_markdown_files_to_publish(origin):
 wiki_link_pattern = r"\[\[(.+?)(\|.*?)?\]\]"
 
 
-def extract_wiki_links(markdown_text):
+def extract_wiki_links(markdown_text: str) -> list[Hyperlink]:
     """
     This function extracts wiki links from a markdown file using regular expressions.
 
@@ -34,27 +32,26 @@ def extract_wiki_links(markdown_text):
         markdown_text: The text content of the markdown file as a string.
 
     Returns:
-        A list of extracted wiki links (strings).
+        A list of extracted wiki links as Hyperlink objects.
     """
-    # wiki_link_pattern = r"\[\[([^\|]+?)\|?([^\]]*)\]\]"  # Matches both [[wiki link]] and [[wiki link||alias]]
-
     matches = re.findall(wiki_link_pattern, markdown_text)
     wiki_links = []
     for match in matches:
         # The first item is the link, the second is the alias which might be empty
         link = match[0]
         alias = match[1][1:] if match[1] else None  # Exclude the leading pipe character
-        wiki_links.append((link, alias))
+        hyperlink = Hyperlink(link, alias)
+        wiki_links.append(hyperlink)
 
     return wiki_links
 
 
 # Read the markdown file and extract JSON content
 def read_json_from_markdown(markdown_path):
-    with open(markdown_path, 'r', encoding='utf8') as file:
+    with open(markdown_path, "r", encoding="utf8") as file:
         content = file.read()
         # This regex assumes that your JSON is correctly formatted and indented
-        matches = re.search(r'```json\n([\s\S]*?)\n```', content)
+        matches = re.search(r"```json\n([\s\S]*?)\n```", content)
         if matches:
             return matches.group(1).strip()
     return None
