@@ -77,20 +77,16 @@ def copy_assets(
     for asset_filename in asset_file_names:
         base_filename = os.path.basename(asset_filename)
         if asset_filename.lower().endswith(".excalidraw"):
-            is_success = process_excalidraw_file_using_external_process(
-                asset_filename,
-                base_filename,
-                images_destination_dir,
-                file_name_to_path_dict,
-            )
-            if not is_success:
-                logging.error(f"Failed to convert {asset_filename} to SVG.")
-                continue
-        else:
-            source_path = file_name_to_path_dict[asset_filename]
-            slugified_filename = slugify_filename(base_filename)
-            destination_path = os.path.join(images_destination_dir, slugified_filename)
-            shutil.copy(source_path, destination_path)
+            # as excalidraw file has markdown extension at end
+            # for now export to svg doesnt work properly, hence manually copying.
+            asset_filename = asset_filename + ".md"
+            base_filename = os.path.basename(asset_filename)
+        
+        source_path = file_name_to_path_dict[asset_filename]
+        slugified_filename = slugify_filename(base_filename)
+        print(base_filename, slugified_filename)
+        destination_path = os.path.join(images_destination_dir, slugified_filename)
+        shutil.copy(source_path, destination_path)
 
 
 def save_to_excalidraw_file(json_content, excalidraw_path):

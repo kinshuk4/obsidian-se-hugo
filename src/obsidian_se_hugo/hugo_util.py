@@ -88,12 +88,23 @@ def convert_file_to_hugo_format(
 def slugify_filename(input_filename: str) -> str:
     # Separate the base of the filename from the extension
     input_filename = input_filename.lower()
-    filename_base, file_extension = os.path.splitext(input_filename)
+    # to handle files with multiple dots eg. abc.excalidraw.md
+    # find first dot file
+    first_dot_index = input_filename.find(".")
+
+    if first_dot_index != -1:
+        filename_base = input_filename[:first_dot_index]
+        file_extension = input_filename[first_dot_index:]
+    else:
+        filename_base = input_filename
+        file_extension = ""
+
     # Replace spaces with hyphens, remove multiple hyphens, and remove any leftover invalid characters
     slugified = re.sub(r"\s+", "-", filename_base)
     slugified = re.sub(r"-+", "-", slugified)
     slugified = re.sub(r"[^\w\-]", "", slugified)
     # Return the slugified filename with the original file extension
+
     return slugified + file_extension
 
 
