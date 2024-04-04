@@ -74,23 +74,21 @@ def copy_assets(
     os.makedirs(images_destination_dir, exist_ok=True)
 
     # Copy each asset from the list to the destination directory
-    for asset_file_name in asset_file_names:
-        filename = os.path.basename(asset_file_name)
-        if asset_file_name.lower().endswith(".excalidraw"):
-            actual_asset_file_name = asset_file_name + ".md"
-            source_path = file_name_to_path_dict[actual_asset_file_name]
-            svg_filename = os.path.splitext(filename)[0] + ".svg"
-            slugified_svg_filename = slugify_filename(svg_filename)
-            destination_path = os.path.join(
-                images_destination_dir, slugified_svg_filename
+    for asset_filename in asset_file_names:
+        base_filename = os.path.basename(asset_filename)
+        if asset_filename.lower().endswith(".excalidraw"):
+            is_success = process_excalidraw_file_using_external_process(
+                asset_filename,
+                base_filename,
+                images_destination_dir,
+                file_name_to_path_dict,
             )
-            result = process_excalidraw_file(source_path, destination_path)
-            if not result:
-                logging.error(f"Failed to convert {asset_file_name} to SVG.")
-                continue  # Skip to the next file
+            if not is_success:
+                logging.error(f"Failed to convert {asset_filename} to SVG.")
+                continue
         else:
-            source_path = file_name_to_path_dict[asset_file_name]
-            slugified_filename = slugify_filename(filename)
+            source_path = file_name_to_path_dict[asset_filename]
+            slugified_filename = slugify_filename(base_filename)
             destination_path = os.path.join(images_destination_dir, slugified_filename)
             shutil.copy(source_path, destination_path)
 
@@ -110,7 +108,25 @@ def convert_excalidraw_to_svg(excalidraw_path):
     return True
 
 
-def process_excalidraw_file(markdown_path, svg_path) -> bool:
+def process_excalidraw_file_using_external_process(
+    asset_filename: str,
+    base_filename: str,
+    images_destination_dir: str,
+    file_name_to_path_dict: dict[str, str],
+) -> bool:
+    actual_asset_filename = asset_filename + ".md"
+    source_path = file_name_to_path_dict[actual_asset_filename]
+    svg_filename = os.path.splitext(base_filename)[0] + ".svg"
+    slugified_svg_filename = slugify_filename(svg_filename)
+    destination_path = os.path.join(images_destination_dir, slugified_svg_filename)
+    result = extract_json_and_export_excalidraw_to_svg(source_path, destination_path)
+    if not result:
+
+        return False
+    return True
+
+
+def extract_json_and_export_excalidraw_to_svg(markdown_path, svg_path) -> bool:
     json_content = read_json_from_markdown(markdown_path)
     if json_content is not None:
         # create temp excalidraw file at same location where svg will be generated
