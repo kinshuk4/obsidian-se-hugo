@@ -84,7 +84,6 @@ def copy_assets(
         
         source_path = file_name_to_path_dict[asset_filename]
         slugified_filename = slugify_filename(base_filename)
-        print(base_filename, slugified_filename)
         destination_path = os.path.join(images_destination_dir, slugified_filename)
         shutil.copy(source_path, destination_path)
 
