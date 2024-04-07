@@ -48,36 +48,54 @@ def change_front_matter(post: frontmatter.Post, allowed_keys: set[str]) -> None:
 
 
 wiki_link_pattern = re.compile(r"\[\[(.*?)(\|(.*?))?\]\]")
+youtube_pattern = r'!\[(.*?)\]\(https:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)\)'
 
 
-# Function to convert wiki link to Hugo format
-def convert_to_hugo_format(match: re.Match) -> str:
-    link = match.group(1).strip()
-    alias = match.group(3) if match.group(2) else link
+def replace_wikilinks_with_markdown_links(content: str) -> str:
+    # Function to convert wiki link to Hugo format
+    def wikilink_to_markdown_replacer(match: re.Match) -> str:
+        link = match.group(1).strip()
+        alias = match.group(3) if match.group(2) else link
 
-    link = slugify_filename(link)
+        link = slugify_filename(link)
 
-    if link.lower().endswith(".excalidraw"):
-        link = re.sub(r"\.excalidraw$", ".excalidraw.svg", link, flags=re.IGNORECASE)
+        if link.lower().endswith(".excalidraw"):
+            link = re.sub(
+                r"\.excalidraw$", ".excalidraw.svg", link, flags=re.IGNORECASE
+            )
 
-    if re.search(r"\.(png|jpg|jpeg|gif|svg|webp)$", link, re.IGNORECASE):
-        # Format the markdown for an image
-        return "[{}]({})".format(alias, "/blog/notes/images/" + link)
+        if re.search(r"\.(png|jpg|jpeg|gif|svg|webp)$", link, re.IGNORECASE):
+            # Format the markdown for an image
+            return "[{}]({})".format(alias, "/blog/notes/images/" + link)
 
-    hugo_link = link + ".md"
-    # Replace with your actual Hugo shortcode format for links.
-    # Here I'm assuming a hypothetical Hugo shortcode for links like: {{< link "url" "text" >}}
-    return '[{}]({{{{< relref "{}" >}}}})'.format(alias, hugo_link)
+        hugo_link = link + ".md"
+        # Replace with your actual Hugo shortcode format for links.
+        # Here I'm assuming a hypothetical Hugo shortcode for links like: {{< link "url" "text" >}}
+        return '[{}]({{{{< relref "{}" >}}}})'.format(alias, hugo_link)
 
+    return wiki_link_pattern.sub(wikilink_to_markdown_replacer, content)
 
-def convert_file_to_hugo_format(
+def replace_youtube_links_with_hugo_format_links(content: str) -> str:
+    # Function to convert youtube link to Hugo format
+    def youtube_to_markdown_replacer(match: re.Match) -> str:
+        alias = match.group(1).strip()
+        youtube_id = match.group(2).strip()
+        title_part = f' title="{alias}"' if alias else ''
+        return f'{{{{< youtube id="{youtube_id}" {title_part} >}}}}'
+
+    return re.sub(youtube_pattern, youtube_to_markdown_replacer, content)
+
+def convert_markdown_file_to_hugo_format(
     input_file_path: str, output_file_path: str, allowed_keys: set[str] = set()
 ) -> None:
     post = frontmatter.load(input_file_path)
     change_front_matter(post, allowed_keys)
 
     content = post.content
-    new_content = wiki_link_pattern.sub(convert_to_hugo_format, content)
+    # replace wikilinks with markdown links
+    new_content = replace_wikilinks_with_markdown_links(content)
+    # replace youtube links with hugo format
+    new_content = replace_youtube_links_with_hugo_format_links(new_content)
     post.content = new_content
     with open(output_file_path, "w", encoding="utf-8") as output_file:
         # Manually serialize the front matter and content
@@ -120,4 +138,4 @@ def copy_markdown_files_in_hugo_format(
         new_file_name = slugify_filename(link)
         new_file_name = new_file_name + ".md"
         new_path = os.path.join(notes_destination_dir, new_file_name)
-        convert_file_to_hugo_format(file_path, new_path, allowed_keys)
+        convert_markdown_file_to_hugo_format(file_path, new_path, allowed_keys)
