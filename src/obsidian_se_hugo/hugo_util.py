@@ -48,7 +48,7 @@ def change_front_matter(post: frontmatter.Post, allowed_keys: set[str]) -> None:
 
 
 wiki_link_pattern = re.compile(r"\[\[(.*?)(\|(.*?))?\]\]")
-youtube_pattern = r'!\[(.*?)\]\(https:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)\)'
+youtube_pattern = r"!\[(.*?)\]\((https:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)|https:\/\/youtu\.be\/([a-zA-Z0-9_-]+))\)"
 
 
 def replace_wikilinks_with_markdown_links(content: str) -> str:
@@ -75,15 +75,19 @@ def replace_wikilinks_with_markdown_links(content: str) -> str:
 
     return wiki_link_pattern.sub(wikilink_to_markdown_replacer, content)
 
+
 def replace_youtube_links_with_hugo_format_links(content: str) -> str:
     # Function to convert youtube link to Hugo format
     def youtube_to_markdown_replacer(match: re.Match) -> str:
         alias = match.group(1).strip()
-        youtube_id = match.group(2).strip()
-        title_part = f' title="{alias}"' if alias else ''
-        return f'{{{{< youtube id="{youtube_id}" {title_part} >}}}}'
+        # Extract video id from either type of URL
+        youtube_id = match.group(3) if match.group(3) is not None else match.group(4)
+        youtube_id = youtube_id.strip()
+        title_part = f' title="{alias}"' if alias else ""
+        return f'{{{{< youtube id="{youtube_id}"{title_part} >}}}}'
 
     return re.sub(youtube_pattern, youtube_to_markdown_replacer, content)
+
 
 def convert_markdown_file_to_hugo_format(
     input_file_path: str, output_file_path: str, allowed_keys: set[str] = set()
