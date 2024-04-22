@@ -43,6 +43,8 @@ def bfs(
                     reachable_assets.add(link)
                 else:
                     markdown_link = link + ".md"
+                    if markdown_link not in file_name_to_path_dict:
+                        raise ValueError(f"Outgoing Link {markdown_link} in '{base_file_name}' cannot be found.")
                     neighbors.append(file_name_to_path_dict[markdown_link])
             # Process node if needed, then add its neighbors to the queue
             # Here we add to the queue all adjacent nodes that haven't been visited
