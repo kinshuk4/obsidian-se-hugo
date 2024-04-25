@@ -24,9 +24,9 @@ def convert_date_to_iso(date_str: str) -> str:
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def change_front_matter(post: frontmatter.Post, allowed_keys: set[str]) -> None:
+def change_front_matter(post: frontmatter.Post, allowed_keys: set[str], input_file_path: str) -> None:
     if "title" not in post.metadata:
-        raise ValueError("Title is missing in front matter.")
+        raise ValueError(f"Title is missing in front matter in {input_file_path}")
 
     post.metadata["draft"] = False
     if "published" in post.metadata:
@@ -93,7 +93,7 @@ def convert_markdown_file_to_hugo_format(
     input_file_path: str, output_file_path: str, allowed_keys: set[str] = set()
 ) -> None:
     post = frontmatter.load(input_file_path)
-    change_front_matter(post, allowed_keys)
+    change_front_matter(post, allowed_keys, input_file_path)
 
     content = post.content
     # replace wikilinks with markdown links
