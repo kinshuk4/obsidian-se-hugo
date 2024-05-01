@@ -68,7 +68,7 @@ def replace_wikilinks_with_markdown_links(content: str) -> str:
 
         if re.search(r"\.(png|jpg|jpeg|gif|svg|webp)$", link, re.IGNORECASE):
             # Format the markdown for an image
-            return "[{}]({})".format(alias, "/content/images/obsidian/" + link)
+            return "[{}]({})".format(alias, "/images/obsidian/" + link)
 
         hugo_link = link + ".md"
         # Replace with your actual Hugo shortcode format for links.
