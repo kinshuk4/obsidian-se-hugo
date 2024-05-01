@@ -4,6 +4,8 @@ import frontmatter
 from datetime import datetime
 import os
 
+from obsidian_se_hugo.markdown_util import get_hugo_section
+
 
 default_allowed_frontmatter_keys_in_hugo = {
     "title",
@@ -66,7 +68,7 @@ def replace_wikilinks_with_markdown_links(content: str) -> str:
 
         if re.search(r"\.(png|jpg|jpeg|gif|svg|webp)$", link, re.IGNORECASE):
             # Format the markdown for an image
-            return "[{}]({})".format(alias, "/blog/notes/images/" + link)
+            return "[{}]({})".format(alias, "/omages/" + link)
 
         hugo_link = link + ".md"
         # Replace with your actual Hugo shortcode format for links.
@@ -142,4 +144,20 @@ def copy_markdown_files_in_hugo_format(
         new_file_name = slugify_filename(link)
         new_file_name = new_file_name + ".md"
         new_path = os.path.join(notes_destination_dir, new_file_name)
+        convert_markdown_file_to_hugo_format(file_path, new_path, allowed_keys)
+
+
+def copy_markdown_files_using_hugo_section(
+    reachable_links: set[str],
+    hugo_content_dir: str,
+    file_name_to_path_dict: dict[str, str],
+    allowed_keys=set[str](),
+):
+    for link in reachable_links:
+        logging.info(f"Converting ({link}) to hugo format")
+        file_path = file_name_to_path_dict[link + ".md"]
+        new_file_name = slugify_filename(link)
+        new_file_name = new_file_name + ".md"
+        notes_destination_dir = get_hugo_section(file_path)
+        new_path = os.path.join(hugo_content_dir, notes_destination_dir, new_file_name)
         convert_markdown_file_to_hugo_format(file_path, new_path, allowed_keys)

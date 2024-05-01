@@ -10,6 +10,7 @@ class ObsidianConfig:
 class HugoConfig:
     root_path: str
     posts_dir: str
+    posts_dir_list: set[str]
     images_dir: str
     allowed_frontmatter_keys: set[str]
 
@@ -17,7 +18,8 @@ class HugoConfig:
         # Convert list to set if it's not already a set
         if isinstance(self.allowed_frontmatter_keys, list):
             self.allowed_frontmatter_keys = set(self.allowed_frontmatter_keys)
-
+        if isinstance(self.posts_dir_list, list):
+            self.posts_dir_list = set(self.posts_dir_list)
 
 @dataclass
 class Config:

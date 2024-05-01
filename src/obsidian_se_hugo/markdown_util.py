@@ -55,3 +55,10 @@ def read_json_from_markdown(markdown_path: str) -> str:
         if matches:
             return matches.group(1).strip()
     return None
+
+def get_hugo_section(file_path: str) -> str:
+    post = frontmatter.load(file_path)
+    key = "hugo_section"
+    if key not in post:
+        raise ValueError(f"{key} not found in file: {file_path}")
+    return post.get(key)

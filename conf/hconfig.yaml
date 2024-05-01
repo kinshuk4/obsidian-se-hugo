@@ -1,0 +1,8 @@
+obsidian:
+  root_path: "/Users/kinshuk.chandra/lyf/syncs/Dropbox/r00t/edu/Obsidian/apnotes-ob/r"
+hugo:
+  root_path: "/Users/kinshuk.chandra/lyf/scm/github/k2/k5kc-site/content"
+  posts_dir: ""
+  posts_dir_list: ["cs/algorithms"]
+  images_dir: "omages"
+  allowed_frontmatter_keys: []
