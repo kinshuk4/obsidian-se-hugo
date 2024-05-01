@@ -81,7 +81,7 @@ def copy_assets(
             # for now export to svg doesnt work properly, hence manually copying.
             asset_filename = asset_filename + ".md"
             base_filename = os.path.basename(asset_filename)
-        
+
         source_path = file_name_to_path_dict[asset_filename]
         slugified_filename = slugify_filename(base_filename)
         destination_path = os.path.join(images_destination_dir, slugified_filename)
@@ -135,3 +135,35 @@ def extract_json_and_export_excalidraw_to_svg(markdown_path, svg_path) -> bool:
     else:
         logging.warning("No valid JSON content found in markdown file.")
         return False
+
+def merge_folders(source_dir, dest_dir):
+    """
+    Merges files from source directory to destination directory,
+    preserving folder structure and skipping existing files.
+
+    Args:
+      source_dir: Path to the source directory (manual-content).
+      dest_dir: Path to the destination directory (content).
+    """
+    for root, dirs, files in os.walk(source_dir):
+        # Construct relative path within destination directory
+        relative_path = os.path.relpath(root, source_dir)
+        dest_path = os.path.join(dest_dir, relative_path)
+
+        # Create destination directory if it doesn't exist
+        if not os.path.exists(dest_path):
+            os.makedirs(dest_path)
+
+        for filename in files:
+            if filename == ".DS_Store":
+                continue
+            source_file = os.path.join(root, filename)
+            dest_file = os.path.join(dest_path, filename)
+
+            # Skip existing files in destination
+            if os.path.exists(dest_file):
+                raise FileExistsError(f"Destination File '{source_file}' already exists")
+
+            # Copy the file
+            shutil.copy2(source_file, dest_file)
+            logging.info(f"Copied: {source_file} to {dest_file}")
