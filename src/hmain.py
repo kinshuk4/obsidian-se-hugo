@@ -63,7 +63,7 @@ def main():
         print(f"Creating target notes dir {post_destination}")
         create_directory_if_not_exists(post_destination)
 
-    images_destination_dir = os.path.join(hugo_content_path, config.hugo.images_dir)
+    images_destination_dir = os.path.join(config.hugo.root_path, config.hugo.images_dir)
 
     # Not useful as for me, images are under posts
     images_destination = Path(images_destination_dir)

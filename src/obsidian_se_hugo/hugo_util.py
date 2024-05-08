@@ -63,7 +63,7 @@ def replace_wikilinks_with_markdown_links(content: str) -> str:
 
         if link.lower().endswith(".excalidraw"):
             link = re.sub(
-                r"\.excalidraw$", ".excalidraw.svg", link, flags=re.IGNORECASE
+                r"\.excalidraw$", ".excalidraw.png", link, flags=re.IGNORECASE
             )
 
         if re.search(r"\.(png|jpg|jpeg|gif|svg|webp)$", link, re.IGNORECASE):
