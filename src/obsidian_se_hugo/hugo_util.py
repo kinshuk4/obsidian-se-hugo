@@ -66,7 +66,7 @@ def replace_wikilinks_with_markdown_links(content: str) -> str:
             section = link_parts[1]
 
         link = slugify_filename(link)
-        section_slug = slugify_filename(section) if section else ""
+        section_slug = slugify_section(section) if section else ""
 
         if section_slug:
             section_slug = '/#' + section_slug
@@ -80,7 +80,7 @@ def replace_wikilinks_with_markdown_links(content: str) -> str:
             # Format the markdown for an image
             return "[{}]({})".format(alias, "/images/obsidian/" + link)
 
-        hugo_link = f"{link}{section_slug}.md"
+        hugo_link = f"{link}.md{section_slug}"
         # Replace with your actual Hugo shortcode format for links.
         # Here I'm assuming a hypothetical Hugo shortcode for links like: {{< link "url" "text" >}}
         return '[{}]({{{{< relref "{}" >}}}})'.format(alias, hugo_link)
@@ -120,27 +120,33 @@ def convert_markdown_file_to_hugo_format(
 
 
 def slugify_filename(input_filename: str) -> str:
-    # Separate the base of the filename from the extension
+    # Lowercase the filename
     input_filename = input_filename.lower()
-    # to handle files with multiple dots eg. abc.excalidraw.md
-    # find first dot file
+
+    # Find the first dot in the filename to determine where the extension starts
     first_dot_index = input_filename.find(".")
 
+    # Separate the filename from the extension
     if first_dot_index != -1:
         filename_base = input_filename[:first_dot_index]
         file_extension = input_filename[first_dot_index:]
     else:
         filename_base = input_filename
         file_extension = ""
+    
+    # Replace any sequence of non-alphanumeric characters (except hyphens) with a hyphen
+    slugified = re.sub(r'[^a-z0-9]+', '-', filename_base)
 
-    # Replace spaces with hyphens, remove multiple hyphens, and remove any leftover invalid characters
-    slugified = re.sub(r"\s+", "-", filename_base)
-    slugified = re.sub(r"-+", "-", slugified)
-    slugified = re.sub(r"[^\w\-]", "", slugified)
-    # Return the slugified filename with the original file extension
-
+    # Return the slugified filename with the extension preserved
     return slugified + file_extension
 
+def slugify_section(input: str) -> str:  
+    output = input.lower()
+    
+    # Replace spaces with a single hyphen
+    output = re.sub(r'\s+', '-', output)
+
+    return output
 
 def copy_markdown_files_in_hugo_format(
     reachable_links: set[str],
