@@ -59,7 +59,17 @@ def replace_wikilinks_with_markdown_links(content: str) -> str:
         link = match.group(1).strip()
         alias = match.group(3) if match.group(2) else link
 
+        link_parts = link.split("#", 1)  
+        section = ''
+        if (len(link_parts) > 1):
+            link = link_parts[0]
+            section = link_parts[1]
+
         link = slugify_filename(link)
+        section_slug = slugify_filename(section) if section else ""
+
+        if section_slug:
+            section_slug = '/#' + section_slug
 
         if link.lower().endswith(".excalidraw"):
             link = re.sub(
@@ -70,7 +80,7 @@ def replace_wikilinks_with_markdown_links(content: str) -> str:
             # Format the markdown for an image
             return "[{}]({})".format(alias, "/images/obsidian/" + link)
 
-        hugo_link = link + ".md"
+        hugo_link = f"{link}{section_slug}.md"
         # Replace with your actual Hugo shortcode format for links.
         # Here I'm assuming a hypothetical Hugo shortcode for links like: {{< link "url" "text" >}}
         return '[{}]({{{{< relref "{}" >}}}})'.format(alias, hugo_link)

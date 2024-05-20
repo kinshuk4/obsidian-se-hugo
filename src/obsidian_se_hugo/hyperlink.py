@@ -7,3 +7,4 @@ class Hyperlink:
 
     link: str  # Mandatory link URL (string)
     alias: str = None  # Optional alias for the link (string)
+    section: str = None  # Optional section for the link after `#`
