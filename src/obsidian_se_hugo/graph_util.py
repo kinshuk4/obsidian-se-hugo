@@ -43,8 +43,12 @@ def bfs(
                     reachable_assets.add(link)
                 else:
                     # handle the links that link to headers
-                    link_parts = link.split("#", 1)  
-                    markdown_link = link_parts[0] + ".md"
+                    link_parts = link.split("#", 1)
+                    file_link = link_parts[0]
+                    if not file_link:
+                        # some files have links like [[#header]], we ignore them
+                        continue
+                    markdown_link = file_link + ".md"
                     if markdown_link not in file_name_to_path_dict:
                         raise ValueError(f"Outgoing Link {markdown_link} in '{base_file_name}' cannot be found.")
                     neighbors.append(file_name_to_path_dict[markdown_link])
