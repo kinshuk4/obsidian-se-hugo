@@ -180,5 +180,7 @@ def copy_markdown_files_using_hugo_section(
         new_file_name = slugify_filename(link)
         new_file_name = new_file_name + ".md"
         notes_destination_dir = get_hugo_section(file_path)
+        if not notes_destination_dir:
+            raise ValueError(f"Section not found in front matter in {file_path}")
         new_path = os.path.join(hugo_content_dir, notes_destination_dir, new_file_name)
         convert_markdown_file_to_hugo_format(file_path, new_path, allowed_keys)
