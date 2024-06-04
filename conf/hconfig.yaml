@@ -5,6 +5,6 @@ hugo:
   content_dir: "content"
   manual_content_dir: "manual-content"
   posts_dir: ""
-  posts_dir_list: ["cs/", "cs/algorithms", "cs/ood", "cs/pl/", "cs/pl/java"]
+  posts_dir_list: ["cs/", "cs/algorithms", "cs/ood", "cs/pl/", "cs/pl/java", "maths/", "maths/statistics"]
   images_dir: "assets/images/obsidian"
   allowed_frontmatter_keys: []
