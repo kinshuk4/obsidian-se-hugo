@@ -26,7 +26,9 @@ def convert_date_to_iso(date_str: str) -> str:
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def change_front_matter(post: frontmatter.Post, allowed_keys: set[str], input_file_path: str) -> None:
+def change_front_matter(
+    post: frontmatter.Post, allowed_keys: set[str], input_file_path: str
+) -> None:
     if "title" not in post.metadata:
         raise ValueError(f"Title is missing in front matter in {input_file_path}")
 
@@ -53,23 +55,31 @@ wiki_link_pattern = re.compile(r"\[\[(.*?)(\|(.*?))?\]\]")
 youtube_pattern = r"!\[(.*?)\]\((https:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)|https:\/\/youtu\.be\/([a-zA-Z0-9_-]+))\)"
 
 
-def replace_wikilinks_with_markdown_links(content: str) -> str:
+def replace_wikilinks_with_markdown_links(
+    content: str, file_name_to_alternate_link_dict: dict[str, str] = {}
+) -> str:
     # Function to convert wiki link to Hugo format
     def wikilink_to_markdown_replacer(match: re.Match) -> str:
         link = match.group(1).strip()
         alias = match.group(3) if match.group(2) else link
 
-        link_parts = link.split("#", 1)  
-        section = ''
-        if (len(link_parts) > 1):
+        link_parts = link.split("#", 1)
+        section = ""
+        if len(link_parts) > 1:
             link = link_parts[0]
             section = link_parts[1]
-
+        
+        # handle non published links as external links
+        if link in file_name_to_alternate_link_dict:
+            print(link)
+            external_link = file_name_to_alternate_link_dict[link]
+            return f"[{alias}]({external_link})"
+        
         link = slugify_filename(link)
         section_slug = slugify_section(section) if section else ""
 
         if section_slug:
-            section_slug = '#' + section_slug
+            section_slug = "#" + section_slug
 
         if link.lower().endswith(".excalidraw"):
             link = re.sub(
@@ -107,14 +117,19 @@ def replace_youtube_links_with_hugo_format_links(content: str) -> str:
 
 
 def convert_markdown_file_to_hugo_format(
-    input_file_path: str, output_file_path: str, allowed_keys: set[str] = set()
+    input_file_path: str,
+    output_file_path: str,
+    allowed_keys: set[str] = set(),
+    file_name_to_alternate_link_dict: dict[str, str] = {},
 ) -> None:
     post = frontmatter.load(input_file_path)
     change_front_matter(post, allowed_keys, input_file_path)
 
     content = post.content
     # replace wikilinks with markdown links
-    new_content = replace_wikilinks_with_markdown_links(content)
+    new_content = replace_wikilinks_with_markdown_links(
+        content, file_name_to_alternate_link_dict
+    )
     # replace youtube links with hugo format
     new_content = replace_youtube_links_with_hugo_format_links(new_content)
     post.content = new_content
@@ -138,20 +153,22 @@ def slugify_filename(input_filename: str) -> str:
     else:
         filename_base = input_filename
         file_extension = ""
-    
+
     # Replace any sequence of non-alphanumeric characters (except hyphens) with a hyphen
-    slugified = re.sub(r'[^a-z0-9]+', '-', filename_base)
+    slugified = re.sub(r"[^a-z0-9]+", "-", filename_base)
 
     # Return the slugified filename with the extension preserved
     return slugified + file_extension
 
-def slugify_section(input: str) -> str:  
+
+def slugify_section(input: str) -> str:
     output = input.lower()
-    
+
     # Replace spaces with a single hyphen
-    output = re.sub(r'\s+', '-', output)
+    output = re.sub(r"\s+", "-", output)
 
     return output
+
 
 def copy_markdown_files_in_hugo_format(
     reachable_links: set[str],
@@ -173,6 +190,7 @@ def copy_markdown_files_using_hugo_section(
     hugo_content_dir: str,
     file_name_to_path_dict: dict[str, str],
     allowed_keys=set[str](),
+    file_name_to_alternate_link_dict: dict[str, str] = {},
 ):
     for link in reachable_links:
         logging.info(f"Converting ({link}) to hugo format")
@@ -181,6 +199,7 @@ def copy_markdown_files_using_hugo_section(
         new_file_name = new_file_name + ".md"
         notes_destination_dir = get_hugo_section(file_path)
         if not notes_destination_dir:
-            raise ValueError(f"Section not found in front matter in {file_path}")
+            # non publishable links
+            continue
         new_path = os.path.join(hugo_content_dir, notes_destination_dir, new_file_name)
-        convert_markdown_file_to_hugo_format(file_path, new_path, allowed_keys)
+        convert_markdown_file_to_hugo_format(file_path, new_path, allowed_keys, file_name_to_alternate_link_dict)

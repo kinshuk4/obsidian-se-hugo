@@ -3,11 +3,16 @@ import os
 from collections import deque
 
 from .hyperlink import Hyperlink
-from .markdown_util import extract_wiki_links
+from .markdown_util import extract_wiki_links, get_alternate_link, should_publish_post_explicitly
 from .file_util import has_extension, read_text_file
 
 
 def get_outgoing_links(file_path: str) -> list[Hyperlink]:
+    should_be_published = should_publish_post_explicitly(file_path)
+    if not should_be_published and not get_alternate_link(file_path):
+        raise ValueError(f"File {file_path} should not be published and has no alternate link.")
+    elif not should_be_published:
+        return []
     markdown_text = read_text_file(file_path)
     wiki_links = extract_wiki_links(markdown_text)
     return wiki_links

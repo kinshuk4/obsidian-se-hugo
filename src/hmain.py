@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 from obsidian_se_hugo.config import load_config, Config
 from obsidian_se_hugo.hugo_util import copy_markdown_files_in_hugo_format, copy_markdown_files_using_hugo_section
-from obsidian_se_hugo.markdown_util import get_explicit_publish_list
+from obsidian_se_hugo.markdown_util import get_alternate_link_dict, get_explicit_publish_list
 from obsidian_se_hugo.file_util import (
     copy_assets,
     create_directory_if_not_exists,
@@ -75,6 +75,10 @@ def main():
     file_name_to_path_dict = create_file_name_to_path_dictionary(obsidian_vault_path)
     logging.info(f"File name to path dictionary: {len(file_name_to_path_dict)}")
 
+    # {'Segment Tree Data Structure DS Index': 'https://en.wikipedia.org/wiki/Segment_tree'}
+    file_name_to_alternate_link_dict = get_alternate_link_dict(obsidian_vault_path)
+    print(file_name_to_alternate_link_dict)
+
     reachable_links, reachable_assets = grow_publish_list(
         initial_explicit_publish_list, file_name_to_path_dict
     )
@@ -84,6 +88,7 @@ def main():
         hugo_content_path,
         file_name_to_path_dict,
         config.hugo.allowed_frontmatter_keys,
+        file_name_to_alternate_link_dict,
     )
 
     copy_assets(reachable_assets, images_destination_dir, file_name_to_path_dict)

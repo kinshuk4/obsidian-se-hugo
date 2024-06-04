@@ -3,11 +3,18 @@ from pathlib import Path
 import frontmatter
 import re
 from .hyperlink import Hyperlink
-
+import os
 
 def should_publish_post_explicitly(file_path: str, publish_key: str = "published"):
     post = frontmatter.load(file_path)
     return post.get(publish_key, False)
+
+
+def get_alternate_link(file_path: str, alternate_link_key: str = "alternate_link"):
+    post = frontmatter.load(file_path)
+    if alternate_link_key not in post:
+        return None
+    return post.get(alternate_link_key)
 
 
 def get_explicit_publish_list(
@@ -19,6 +26,21 @@ def get_explicit_publish_list(
             logging.info("TO PUBLISH: %s", str(file))
             to_publish.append(str(file))
     return to_publish
+
+
+def get_alternate_link_dict(
+    origin: Path, publish_key: str = "published"
+) -> list[str]:
+    alternate_link = {}
+    for file in origin.rglob("*.md"):
+        post = frontmatter.load(file)
+        if 'alternate_link' in post:
+            logging.info("Alternate link in: %s", str(file))
+            base_file_name = os.path.basename(file)
+            base_file_name_wo_ext, _ = os.path.splitext(base_file_name)
+            logging.info("TO PUBLISH: %s", str(file))
+            alternate_link[base_file_name_wo_ext] = post.get('alternate_link')  
+    return alternate_link
 
 
 wiki_link_pattern = r"\[\[(.+?)(\|.*?)?\]\]"
@@ -56,9 +78,12 @@ def read_json_from_markdown(markdown_path: str) -> str:
             return matches.group(1).strip()
     return None
 
+
 def get_hugo_section(file_path: str) -> str:
     post = frontmatter.load(file_path)
     key = "hugo_section"
-    if key not in post:
+    if key not in post and "alternate_link" not in post:
         raise ValueError(f"{key} not found in file: {file_path}")
+    elif key not in post:
+        return None
     return post.get(key)
