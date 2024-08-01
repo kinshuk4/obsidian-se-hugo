@@ -68,11 +68,13 @@ def create_directory_if_not_exists(dir_path: str):
 def copy_assets(
     asset_file_names: set[str],
     images_destination_dir: str,
+    content_images_destination_dir: str,
     file_name_to_path_dict: dict[str, str],
 ):
     # Ensure that the destination directory exists
     os.makedirs(images_destination_dir, exist_ok=True)
-
+    os.makedirs(content_images_destination_dir, exist_ok=True)
+    image_dir = None
     # Copy each asset from the list to the destination directory
     for asset_filename in asset_file_names:
         base_filename = os.path.basename(asset_filename)
@@ -81,10 +83,17 @@ def copy_assets(
             # for now export to svg doesnt work properly, hence manually copying.
             asset_filename = asset_filename + ".md"
             base_filename = os.path.basename(asset_filename)
+            image_dir = images_destination_dir
+        elif asset_filename.lower().endswith(".gif"):
+            # as gif file has markdown extension at end
+            # for now export to svg doesnt work properly, hence manually copying.
+            image_dir = content_images_destination_dir
+        else:
+            image_dir = images_destination_dir
 
         source_path = file_name_to_path_dict[asset_filename]
         slugified_filename = slugify_filename(base_filename)
-        destination_path = os.path.join(images_destination_dir, slugified_filename)
+        destination_path = os.path.join(image_dir, slugified_filename)
         shutil.copy(source_path, destination_path)
 
 
@@ -136,6 +145,7 @@ def extract_json_and_export_excalidraw_to_svg(markdown_path, svg_path) -> bool:
         logging.warning("No valid JSON content found in markdown file.")
         return False
 
+
 def merge_folders(source_dir, dest_dir):
     """
     Merges files from source directory to destination directory,
@@ -162,7 +172,9 @@ def merge_folders(source_dir, dest_dir):
 
             # Skip existing files in destination
             if os.path.exists(dest_file):
-                raise FileExistsError(f"Destination File '{source_file}' already exists")
+                raise FileExistsError(
+                    f"Destination File '{source_file}' already exists"
+                )
 
             # Copy the file
             shutil.copy2(source_file, dest_file)

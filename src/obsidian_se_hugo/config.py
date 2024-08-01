@@ -15,6 +15,7 @@ class HugoConfig:
     allowed_frontmatter_keys: set[str]
     manual_content_dir: str
     content_dir: str
+    content_images_dir: str
 
     def __post_init__(self):
         # Convert list to set if it's not already a set

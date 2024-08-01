@@ -70,6 +70,13 @@ def main():
     logging.info(f"DELETING images dir {post_destination}")
     delete_target(images_destination)
 
+    images_content_destination_dir = os.path.join(config.hugo.root_path, config.hugo.content_images_dir)
+
+    # Not useful as for me, images are under posts
+    images_content_destination = Path(images_content_destination_dir)
+    logging.info(f"DELETING images dir {images_content_destination}")
+    delete_target(images_content_destination)
+
     initial_explicit_publish_list = get_explicit_publish_list(obsidian_vault_path)
 
     file_name_to_path_dict = create_file_name_to_path_dictionary(obsidian_vault_path)
@@ -91,7 +98,7 @@ def main():
         file_name_to_alternate_link_dict,
     )
 
-    copy_assets(reachable_assets, images_destination_dir, file_name_to_path_dict)
+    copy_assets(reachable_assets, images_destination_dir, images_content_destination_dir, file_name_to_path_dict)
 
     hugo_manual_content_path = os.path.join(config.hugo.root_path, config.hugo.manual_content_dir)
     merge_folders(hugo_manual_content_path, hugo_content_path)
