@@ -5,7 +5,7 @@ hugo:
   content_dir: "content"
   manual_content_dir: "manual-content"
   posts_dir: ""
-  posts_dir_list: ["cs/", "cs/algorithms", "cs/ood", "cs/pl/", "cs/pl/java", "cs/pl/js", "cs/pl/bash", "cs/pl/problems", "cs/network", "cs/network/web", "cs/system-design", "maths/", "maths/statistics", "brain-teasers/", "gk/"]
+  posts_dir_list: ["cs/", "cs/algorithms", "cs/ood", "cs/pl/", "cs/pl/java", "cs/pl/js", "cs/pl/bash", "cs/pl/problems", "cs/pl/sql", "cs/network", "cs/network/web", "cs/system-design", "maths/", "maths/statistics", "brain-teasers/", "gk/"]
   images_dir: "assets/images/obsidian"
   content_images_dir: "content/images/obsidian"
   allowed_frontmatter_keys: []
