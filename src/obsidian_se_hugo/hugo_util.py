@@ -63,9 +63,10 @@ def replace_wikilinks_with_markdown_links(
         """
         Checks if the given indices fall inside a code block or inline code.
         """
-        for match in re.finditer(code_block_pattern, text):
-            if match.start() <= start_index < match.end() or match.start() < end_index <= match.end():
-                return True
+        for pattern in [code_block_pattern, inline_code_pattern]:
+            for match in re.finditer(pattern, text):
+                if match.start() <= start_index < match.end() or match.start() < end_index <= match.end():
+                    return True
         return False
     def wikilink_to_markdown_replacer(match: re.Match) -> str:
 
