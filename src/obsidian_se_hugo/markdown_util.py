@@ -44,7 +44,7 @@ def get_alternate_link_dict(
 
 
 wiki_link_pattern = r"\[\[(.+?)(\|.*?)?\]\]"
-
+code_block_pattern = r"```[\s\S]*?```"
 
 def extract_wiki_links(markdown_text: str) -> list[Hyperlink]:
     """
@@ -56,7 +56,18 @@ def extract_wiki_links(markdown_text: str) -> list[Hyperlink]:
     Returns:
         A list of extracted wiki links as Hyperlink objects.
     """
-    matches = re.findall(wiki_link_pattern, markdown_text)
+    # Split the markdown text into non-code parts using code blocks as delimiters
+    non_code_parts = re.split(code_block_pattern, markdown_text)
+    
+    wiki_links = []
+    for index, part in enumerate(non_code_parts):
+        wiki_links += extract_wiki_links_from_text(part)
+
+    return wiki_links
+
+
+def extract_wiki_links_from_text(text: str) -> list[Hyperlink]:
+    matches = re.findall(wiki_link_pattern, text)
     wiki_links = []
     for match in matches:
         # The first item is the link, the second is the alias which might be empty
@@ -64,9 +75,8 @@ def extract_wiki_links(markdown_text: str) -> list[Hyperlink]:
         alias = match[1][1:] if match[1] else None  # Exclude the leading pipe character
         hyperlink = Hyperlink(link, alias)
         wiki_links.append(hyperlink)
-
+    
     return wiki_links
-
 
 # Read the markdown file and extract JSON content
 def read_json_from_markdown(markdown_path: str) -> str:
