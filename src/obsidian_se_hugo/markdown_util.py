@@ -45,6 +45,7 @@ def get_alternate_link_dict(
 
 wiki_link_pattern = r"\[\[(.+?)(\|.*?)?\]\]"
 code_block_pattern = r"```[\s\S]*?```"
+inline_code_pattern = r"`[^`]*`"
 
 def extract_wiki_links(markdown_text: str) -> list[Hyperlink]:
     """
@@ -60,8 +61,11 @@ def extract_wiki_links(markdown_text: str) -> list[Hyperlink]:
     non_code_parts = re.split(code_block_pattern, markdown_text)
     
     wiki_links = []
-    for index, part in enumerate(non_code_parts):
-        wiki_links += extract_wiki_links_from_text(part)
+    for part in non_code_parts:
+        # Extract wiki links from each non-code part
+        sub_parts = re.split(inline_code_pattern, part)  # Split based on inline code texts
+        for sub_part in sub_parts:
+            wiki_links += extract_wiki_links_from_text(sub_part)
 
     return wiki_links
 
