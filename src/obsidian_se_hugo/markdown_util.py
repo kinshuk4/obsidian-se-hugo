@@ -4,6 +4,7 @@ import frontmatter
 import re
 from .hyperlink import Hyperlink
 import os
+from obsidian_se_hugo.constants import wiki_link_pattern, code_block_pattern, inline_code_pattern
 
 def should_publish_post_explicitly(file_path: str, publish_key: str = "published"):
     post = frontmatter.load(file_path)
@@ -41,11 +42,6 @@ def get_alternate_link_dict(
             logging.info("TO PUBLISH: %s", str(file))
             alternate_link[base_file_name_wo_ext] = post.get('alternate_link')  
     return alternate_link
-
-
-wiki_link_pattern = r"\[\[(.+?)(\|.*?)?\]\]"
-code_block_pattern = r"```[\s\S]*?```"
-inline_code_pattern = r"`[^`]*`"
 
 def extract_wiki_links(markdown_text: str) -> list[Hyperlink]:
     """

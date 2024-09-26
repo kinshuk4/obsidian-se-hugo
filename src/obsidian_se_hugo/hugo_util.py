@@ -5,7 +5,7 @@ from datetime import datetime
 import os
 
 from obsidian_se_hugo.markdown_util import get_hugo_section
-
+from obsidian_se_hugo.constants import code_block_pattern, inline_code_pattern
 
 default_allowed_frontmatter_keys_in_hugo = {
     "title",
@@ -59,7 +59,18 @@ def replace_wikilinks_with_markdown_links(
     content: str, file_name_to_alternate_link_dict: dict[str, str] = {}
 ) -> str:
     # Function to convert wiki link to Hugo format
+    def is_inside_code_block(start_index: int, end_index: int, text: str) -> bool:
+        """
+        Checks if the given indices fall inside a code block or inline code.
+        """
+        for match in re.finditer(code_block_pattern, text):
+            if match.start() <= start_index < match.end() or match.start() < end_index <= match.end():
+                return True
+        return False
     def wikilink_to_markdown_replacer(match: re.Match) -> str:
+
+        if is_inside_code_block(match.start(), match.end(), content):
+            return match.group(0)  # Return the original text if within a code block
         link = match.group(1).strip()
         alias = match.group(3) if match.group(2) else link
 
