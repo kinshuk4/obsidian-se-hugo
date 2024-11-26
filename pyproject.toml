@@ -16,8 +16,8 @@ description = "A template Poetry project structure."
 
 packages = [{ include = "project_name", from = "src" }]
 
-authors = ["Lari Liuhamo <lari.liuhamo+pypi@gmail.com>"]
-maintainers = ["Lari Liuhamo <lari.liuhamo+pypi@gmail.com>"]
+authors = ["Kinshuk Chandra <kinshuk.ram+pypi@gmail.com>"]
+maintainers = ["Kinshuk Chandra <kinshuk.ram+pypi@gmail.com>"]
 
 include = ["CHANGELOG.md", "LICENSE", "py.typed"]
 license = "MIT"
