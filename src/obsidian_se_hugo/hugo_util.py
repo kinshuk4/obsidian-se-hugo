@@ -16,6 +16,7 @@ default_allowed_frontmatter_keys_in_hugo = {
     "tags",
     "categories",
     "aliases",
+    "difficulty",
 }
 
 
@@ -68,6 +69,7 @@ def replace_wikilinks_with_markdown_links(
                 if match.start() <= start_index < match.end() or match.start() < end_index <= match.end():
                     return True
         return False
+    
     def wikilink_to_markdown_replacer(match: re.Match) -> str:
 
         if is_inside_code_block(match.start(), match.end(), content):
