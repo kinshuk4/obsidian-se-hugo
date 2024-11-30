@@ -17,6 +17,7 @@ default_allowed_frontmatter_keys_in_hugo = {
     "categories",
     "aliases",
     "difficulty",
+    "companies",
 }
 
 
