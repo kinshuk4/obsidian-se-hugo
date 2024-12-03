@@ -7,8 +7,12 @@ import os
 from obsidian_se_hugo.constants import wiki_link_pattern, code_block_pattern, inline_code_pattern
 
 def should_publish_post_explicitly(file_path: str, publish_key: str = "published"):
-    post = frontmatter.load(file_path)
-    return post.get(publish_key, False)
+    try:
+        post = frontmatter.load(file_path)
+        return post.get(publish_key, False)
+    except Exception as e:
+        logging.error(f"Error in reading file: {file_path} - {e}")
+        raise e
 
 
 def get_alternate_link(file_path: str, alternate_link_key: str = "alternate_link"):
