@@ -18,6 +18,9 @@ default_allowed_frontmatter_keys_in_hugo = {
     "aliases",
     "difficulty",
     "companies",
+    "topic",
+    "order",
+    "video_ids",
 }
 
 
