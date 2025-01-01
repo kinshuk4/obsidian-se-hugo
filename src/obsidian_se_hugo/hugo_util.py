@@ -21,6 +21,11 @@ default_allowed_frontmatter_keys_in_hugo = {
     "topic",
     "order",
     "video_ids",
+    "subtopics",
+}
+
+topic_to_category = {
+    "database": ["database", "sql", "pandas"],
 }
 
 
@@ -48,6 +53,14 @@ def change_front_matter(
     if "date_modified" in post.metadata:
         post.metadata["lastmod"] = convert_date_to_iso(post.metadata["date_modified"])
         del post.metadata["date_modified"]
+
+    # Add categories based on topic
+    if "topic" in post.metadata:
+        topic = post.metadata["topic"]
+        if topic in topic_to_category:
+            post.metadata["categories"] = topic_to_category[topic]
+        else:
+            post.metadata["categories"] = [topic]
 
     # Remove extra keys from the markdown
     allowed_keys = allowed_keys.union(default_allowed_frontmatter_keys_in_hugo)
