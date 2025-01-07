@@ -146,6 +146,24 @@ def replace_youtube_links_with_hugo_format_links(content: str) -> str:
 
     return re.sub(youtube_pattern, youtube_to_markdown_replacer, content)
 
+def replace_latex_syntax(content: str) -> str:
+    """
+    Replace LaTeX expressions in the content by changing "\\" to "\\\".
+    LaTeX expressions are found between $$ ... $$.
+    """
+    def latex_replacer(match: re.Match) -> str:
+        latex_content = match.group(1)
+        # Replace "\\" with "\\\"
+        updated_latex_content = latex_content.replace("\\\\", "\\\\\\")
+        updated_latex_content = re.sub(r"\\\$", r"\\\\$", updated_latex_content)
+        updated_latex_content = re.sub(r"\\\#", r"\\\\#", updated_latex_content)
+        return f"$${updated_latex_content}$$"
+
+    # Regex pattern to find LaTeX expressions between $$
+    latex_pattern = re.compile(r"\$\$(.*?)\$\$", re.DOTALL)
+    updated_content = re.sub(latex_pattern, latex_replacer, content)
+    
+    return updated_content
 
 def convert_markdown_file_to_hugo_format(
     input_file_path: str,
@@ -163,6 +181,7 @@ def convert_markdown_file_to_hugo_format(
     )
     # replace youtube links with hugo format
     new_content = replace_youtube_links_with_hugo_format_links(new_content)
+    new_content = replace_latex_syntax(new_content)
     post.content = new_content
     with open(output_file_path, "w", encoding="utf-8") as output_file:
         # Manually serialize the front matter and content
