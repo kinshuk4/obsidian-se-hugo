@@ -157,6 +157,7 @@ def replace_latex_syntax(content: str) -> str:
         updated_latex_content = latex_content.replace("\\\\", "\\\\\\")
         updated_latex_content = re.sub(r"\\\$", r"\\\\$", updated_latex_content)
         updated_latex_content = re.sub(r"\\\#", r"\\\\#", updated_latex_content)
+        updated_latex_content = updated_latex_content.replace("\\cellcolor", "\\colorbox")
         return f"$${updated_latex_content}$$"
 
     # Regex pattern to find LaTeX expressions between $$
