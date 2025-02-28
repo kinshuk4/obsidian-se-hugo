@@ -5,7 +5,7 @@ import logging
 import sys
 from pathlib import Path
 from obsidian_se_hugo.config import load_config, Config
-from obsidian_se_hugo.hugo_util import copy_markdown_files_in_hugo_format, copy_markdown_files_using_hugo_section
+from obsidian_se_hugo.hugo_util import copy_markdown_files_using_hugo_section
 from obsidian_se_hugo.markdown_util import get_alternate_link_dict, get_explicit_publish_list
 from obsidian_se_hugo.file_util import (
     copy_assets,
@@ -99,7 +99,6 @@ def main():
     )
 
     copy_assets(reachable_assets, images_destination_dir, images_content_destination_dir, file_name_to_path_dict)
-
     hugo_manual_content_path = os.path.join(config.hugo.root_path, config.hugo.manual_content_dir)
     merge_folders(hugo_manual_content_path, hugo_content_path)
 
