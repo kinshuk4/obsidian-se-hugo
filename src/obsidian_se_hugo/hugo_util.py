@@ -1,8 +1,10 @@
 import logging
 import re
+from time import sleep
 import frontmatter
 from datetime import datetime
 import os
+import yaml
 
 from obsidian_se_hugo.markdown_util import get_hugo_section
 from obsidian_se_hugo.constants import code_block_pattern, inline_code_pattern
@@ -22,6 +24,7 @@ default_allowed_frontmatter_keys_in_hugo = {
     "order",
     "video_ids",
     "subtopics",
+    "curated_lists"
 }
 
 topic_to_category = {
@@ -64,9 +67,10 @@ def change_front_matter(
 
     # Remove extra keys from the markdown
     allowed_keys = allowed_keys.union(default_allowed_frontmatter_keys_in_hugo)
-    post.metadata = {
-        key: value for key, value in post.metadata.items() if key in allowed_keys
-    }
+    keys_to_delete = [key for key in post.metadata if key not in allowed_keys]
+
+    for key in keys_to_delete:
+        del post.metadata[key]
 
 
 wiki_link_pattern = re.compile(r"\[\[(.*?)(\|(.*?))?\]\]")
@@ -184,10 +188,20 @@ def convert_markdown_file_to_hugo_format(
     new_content = replace_youtube_links_with_hugo_format_links(new_content)
     new_content = replace_latex_syntax(new_content)
     post.content = new_content
+
     with open(output_file_path, "w", encoding="utf-8") as output_file:
         # Manually serialize the front matter and content
-        front_matter_str = frontmatter.dumps(post)
-        output_file.write(front_matter_str)
+        # front_matter_str = frontmatter.dumps(post)
+        front_matter_str = yaml.dump(post.metadata, default_flow_style=False, sort_keys=True)
+        if "curated_lists" in post.metadata:
+            print(output_file_path)
+            print("XXXXX", post.metadata["curated_lists"])
+            print("ZZZZZZ", post.metadata)
+            print("YYYYY", front_matter_str)
+            sleep(20)
+        output_file.write(f"---\n{front_matter_str}---\n\n{post.content}")
+
+        # output_file.write(front_matter_str)
 
 
 def slugify_filename(input_filename: str) -> str:
