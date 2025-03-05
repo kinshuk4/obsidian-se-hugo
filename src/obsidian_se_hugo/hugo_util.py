@@ -1,11 +1,8 @@
 import logging
 import re
-from time import sleep
 import frontmatter
 from datetime import datetime
 import os
-import yaml
-
 from obsidian_se_hugo.markdown_util import get_hugo_section
 from obsidian_se_hugo.constants import code_block_pattern, inline_code_pattern
 
@@ -24,7 +21,9 @@ default_allowed_frontmatter_keys_in_hugo = {
     "order",
     "video_ids",
     "subtopics",
-    "curated_lists"
+    "curated_lists",
+    "curated_list_map",
+    "problem_links"
 }
 
 topic_to_category = {
@@ -87,10 +86,13 @@ def replace_wikilinks_with_markdown_links(
         """
         for pattern in [code_block_pattern, inline_code_pattern]:
             for match in re.finditer(pattern, text):
-                if match.start() <= start_index < match.end() or match.start() < end_index <= match.end():
+                if (
+                    match.start() <= start_index < match.end()
+                    or match.start() < end_index <= match.end()
+                ):
                     return True
         return False
-    
+
     def wikilink_to_markdown_replacer(match: re.Match) -> str:
 
         if is_inside_code_block(match.start(), match.end(), content):
@@ -103,13 +105,13 @@ def replace_wikilinks_with_markdown_links(
         if len(link_parts) > 1:
             link = link_parts[0]
             section = link_parts[1]
-        
+
         # handle non published links as external links
         if link in file_name_to_alternate_link_dict:
             print(link)
             external_link = file_name_to_alternate_link_dict[link]
             return f"[{alias}]({external_link})"
-        
+
         link = slugify_filename(link)
         section_slug = slugify_section(section) if section else ""
 
@@ -150,25 +152,30 @@ def replace_youtube_links_with_hugo_format_links(content: str) -> str:
 
     return re.sub(youtube_pattern, youtube_to_markdown_replacer, content)
 
+
 def replace_latex_syntax(content: str) -> str:
     """
     Replace LaTeX expressions in the content by changing "\\" to "\\\".
     LaTeX expressions are found between $$ ... $$.
     """
+
     def latex_replacer(match: re.Match) -> str:
         latex_content = match.group(1)
         # Replace "\\" with "\\\"
         updated_latex_content = latex_content.replace("\\\\", "\\\\\\")
         updated_latex_content = re.sub(r"\\\$", r"\\\\$", updated_latex_content)
         updated_latex_content = re.sub(r"\\\#", r"\\\\#", updated_latex_content)
-        updated_latex_content = updated_latex_content.replace("\\cellcolor", "\\colorbox")
+        updated_latex_content = updated_latex_content.replace(
+            "\\cellcolor", "\\colorbox"
+        )
         return f"$${updated_latex_content}$$"
 
     # Regex pattern to find LaTeX expressions between $$
     latex_pattern = re.compile(r"\$\$(.*?)\$\$", re.DOTALL)
     updated_content = re.sub(latex_pattern, latex_replacer, content)
-    
+
     return updated_content
+
 
 def convert_markdown_file_to_hugo_format(
     input_file_path: str,
@@ -191,17 +198,8 @@ def convert_markdown_file_to_hugo_format(
 
     with open(output_file_path, "w", encoding="utf-8") as output_file:
         # Manually serialize the front matter and content
-        # front_matter_str = frontmatter.dumps(post)
-        front_matter_str = yaml.dump(post.metadata, default_flow_style=False, sort_keys=True)
-        if "curated_lists" in post.metadata:
-            print(output_file_path)
-            print("XXXXX", post.metadata["curated_lists"])
-            print("ZZZZZZ", post.metadata)
-            print("YYYYY", front_matter_str)
-            sleep(20)
-        output_file.write(f"---\n{front_matter_str}---\n\n{post.content}")
-
-        # output_file.write(front_matter_str)
+        front_matter_str = frontmatter.dumps(post)
+        output_file.write(front_matter_str)
 
 
 def slugify_filename(input_filename: str) -> str:
@@ -267,4 +265,6 @@ def copy_markdown_files_using_hugo_section(
             # non publishable links
             continue
         new_path = os.path.join(hugo_content_dir, notes_destination_dir, new_file_name)
-        convert_markdown_file_to_hugo_format(file_path, new_path, allowed_keys, file_name_to_alternate_link_dict)
+        convert_markdown_file_to_hugo_format(
+            file_path, new_path, allowed_keys, file_name_to_alternate_link_dict
+        )
