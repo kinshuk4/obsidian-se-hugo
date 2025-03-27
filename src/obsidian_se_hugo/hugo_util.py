@@ -18,7 +18,7 @@ default_allowed_frontmatter_keys_in_hugo = {
     "difficulty",
     "companies",
     "topic",
-    "order",
+    "prob_num",
     "video_ids",
     "subtopics",
     "curated_lists",
