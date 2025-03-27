@@ -77,6 +77,9 @@ def main():
     logging.info(f"DELETING images dir {images_content_destination}")
     delete_target(images_content_destination)
 
+    hugo_manual_content_path = os.path.join(config.hugo.root_path, config.hugo.manual_content_dir)
+    merge_folders(hugo_manual_content_path, hugo_content_path)
+
     initial_explicit_publish_list = get_explicit_publish_list(obsidian_vault_path)
 
     file_name_to_path_dict = create_file_name_to_path_dictionary(obsidian_vault_path)
@@ -99,8 +102,7 @@ def main():
     )
 
     copy_assets(reachable_assets, images_destination_dir, images_content_destination_dir, file_name_to_path_dict)
-    hugo_manual_content_path = os.path.join(config.hugo.root_path, config.hugo.manual_content_dir)
-    merge_folders(hugo_manual_content_path, hugo_content_path)
+    
 
 
 if __name__ == "__main__":
