@@ -23,7 +23,7 @@ default_allowed_frontmatter_keys_in_hugo = {
     "subtopics",
     "curated_lists",
     "curated_list_map",
-    "problem_links"
+    "problem_links",
 }
 
 topic_to_category = {
@@ -177,6 +177,20 @@ def replace_latex_syntax(content: str) -> str:
     return updated_content
 
 
+def insert_code_tabs(content: str) -> str:
+    # Regex to find "#### Code" sections and insert `{{< code_tabs >}}` and `{{< /code_tabs >}}`
+    pattern = r"(#### Code\s*\n\n)(.*?)(?=\n#### |\Z)"  # Match content after "#### Code" until the next "#### " or end of file
+    def replacer(match):
+        code_section = match.group(2).strip()
+        # Wrap the code section with `{{< code_tabs >}}` and `{{< /code_tabs >}}`
+        return f"{match.group(1)}{{{{< code_tabs >}}}}\n{code_section}\n{{{{< /code_tabs >}}}}"
+
+    # Replace all matches in the content
+    updated_content = re.sub(pattern, replacer, content, flags=re.DOTALL)
+
+    return updated_content
+
+
 def convert_markdown_file_to_hugo_format(
     input_file_path: str,
     output_file_path: str,
@@ -194,6 +208,8 @@ def convert_markdown_file_to_hugo_format(
     # replace youtube links with hugo format
     new_content = replace_youtube_links_with_hugo_format_links(new_content)
     new_content = replace_latex_syntax(new_content)
+    new_content = insert_code_tabs(new_content)
+
     post.content = new_content
 
     with open(output_file_path, "w", encoding="utf-8") as output_file:
