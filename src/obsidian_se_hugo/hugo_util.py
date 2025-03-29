@@ -179,7 +179,10 @@ def replace_latex_syntax(content: str) -> str:
 
 def insert_code_tabs(content: str) -> str:
     # Regex to find "#### Code" sections and insert `{{< code_tabs >}}` and `{{< /code_tabs >}}`
-    pattern = r"(#### Code\s*\n\n)(.*?)(?=\n#### |\Z)"  # Match content after "#### Code" until the next "#### " or end of file
+    # Match content after "#### Code" 
+    # until the next "#### " or "### " OR "## " end of file
+    pattern = r"(#### Code\s*\n\n)(.*?)(?=\n## |\n### |\n#### |\Z)"  
+
     def replacer(match):
         code_section = match.group(2).strip()
         # Wrap the code section with `{{< code_tabs >}}` and `{{< /code_tabs >}}`
