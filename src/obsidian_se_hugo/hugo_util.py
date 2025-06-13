@@ -5,6 +5,7 @@ from datetime import datetime
 import os
 from obsidian_se_hugo.markdown_util import get_hugo_section
 from obsidian_se_hugo.constants import code_block_pattern, inline_code_pattern
+from slugify import slugify
 
 default_allowed_frontmatter_keys_in_hugo = {
     "title",
@@ -63,6 +64,12 @@ def change_front_matter(
             post.metadata["categories"] = topic_to_category[topic]
         else:
             post.metadata["categories"] = [topic]
+
+    # Slugify aliases if present
+    if "aliases" in post.metadata:
+        aliases = post.metadata["aliases"]
+        if aliases is not None and isinstance(aliases, list):
+            post.metadata["aliases"] = [slugify(alias) for alias in aliases]
 
     # Remove extra keys from the markdown
     allowed_keys = allowed_keys.union(default_allowed_frontmatter_keys_in_hugo)
@@ -179,9 +186,9 @@ def replace_latex_syntax(content: str) -> str:
 
 def insert_code_tabs(content: str) -> str:
     # Regex to find "#### Code" sections and insert `{{< code_tabs >}}` and `{{< /code_tabs >}}`
-    # Match content after "#### Code" 
+    # Match content after "#### Code"
     # until the next "#### " or "### " OR "## " end of file
-    pattern = r"(#### Code\s*\n\n)(.*?)(?=\n## |\n### |\n#### |\Z)"  
+    pattern = r"(#### Code\s*\n\n)(.*?)(?=\n## |\n### |\n#### |\Z)"
 
     def replacer(match):
         code_section = match.group(2).strip()
