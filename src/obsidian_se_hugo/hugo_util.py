@@ -32,10 +32,12 @@ topic_to_category = {
 }
 
 
-def convert_date_to_iso(date_str: str) -> str:
-    # Assuming the format is 'yyyy-mm-dd HH:MM' without seconds
-    dt = datetime.strptime(date_str, "%Y-%m-%d %H:%M")
-    # Converting to the ISO 8601 format with 'T' separator and 'Z' for UTC timezone
+def convert_date_to_iso(date_val: str | datetime) -> str:
+    # If already a datetime object, use it directly
+    if isinstance(date_val, datetime):
+        dt = date_val
+    else:
+        dt = datetime.strptime(date_val, "%Y-%m-%d %H:%M")
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
@@ -208,7 +210,11 @@ def convert_markdown_file_to_hugo_format(
     file_name_to_alternate_link_dict: dict[str, str] = {},
 ) -> None:
     post = frontmatter.load(input_file_path)
-    change_front_matter(post, allowed_keys, input_file_path)
+    try:
+        change_front_matter(post, allowed_keys, input_file_path)
+    except Exception as e:
+        logging.error(f"Error in front matter of {input_file_path}: {e}")
+        raise e
 
     content = post.content
     # replace wikilinks with markdown links
