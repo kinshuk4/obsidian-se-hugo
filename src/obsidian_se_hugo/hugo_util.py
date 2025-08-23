@@ -25,6 +25,7 @@ default_allowed_frontmatter_keys_in_hugo = {
     "curated_lists",
     "curated_list_map",
     "problem_links",
+    "related_problems",
 }
 
 topic_to_category = {
@@ -131,10 +132,24 @@ def replace_wikilinks_with_markdown_links(
             link = re.sub(
                 r"\.excalidraw$", ".excalidraw.png", link, flags=re.IGNORECASE
             )
+            from obsidian_se_hugo.file_util import EXCALIDRAW_SUBDIR
+
+            return "[{}]({})".format(
+                alias, f"/images/obsidian/{EXCALIDRAW_SUBDIR}/" + link
+            )
 
         if re.search(r"\.(png|jpg|jpeg|gif|svg|webp)$", link, re.IGNORECASE):
-            # Format the markdown for an image
-            return "[{}]({})".format(alias, "/images/obsidian/" + link)
+            # Determine the appropriate subdirectory based on file type
+            if link.lower().endswith(".gif"):
+                # GIF files go to content images directory
+                return "[{}]({})".format(alias, "/images/content/" + link)
+            else:
+                # Regular images go to regular subdirectory
+                from obsidian_se_hugo.file_util import REGULAR_IMAGES_SUBDIR
+
+                return "[{}]({})".format(
+                    alias, f"/images/obsidian/{REGULAR_IMAGES_SUBDIR}/" + link
+                )
 
         if not link:
             # Handle links like [[#header]]

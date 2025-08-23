@@ -6,6 +6,9 @@ from pathlib import Path
 from obsidian_se_hugo.hugo_util import slugify_filename
 from obsidian_se_hugo.markdown_util import read_json_from_markdown
 
+EXCALIDRAW_SUBDIR = "excalidraw"
+REGULAR_IMAGES_SUBDIR = "regular"
+
 
 def get_dir_path(directory_path: str):
     return Path(directory_path)
@@ -71,9 +74,15 @@ def copy_assets(
     content_images_destination_dir: str,
     file_name_to_path_dict: dict[str, str],
 ):
+    # Create subdirectories for different asset types
+    excalidraw_dir = os.path.join(images_destination_dir, EXCALIDRAW_SUBDIR)
+    regular_images_dir = os.path.join(images_destination_dir, REGULAR_IMAGES_SUBDIR)
+
     # Ensure that the destination directory exists
-    os.makedirs(images_destination_dir, exist_ok=True)
+    os.makedirs(excalidraw_dir, exist_ok=True)
+    os.makedirs(regular_images_dir, exist_ok=True)
     os.makedirs(content_images_destination_dir, exist_ok=True)
+
     image_dir = None
     # Copy each asset from the list to the destination directory
     for asset_filename in asset_file_names:
@@ -83,13 +92,13 @@ def copy_assets(
             # for now export to svg doesnt work properly, hence manually copying.
             asset_filename = asset_filename + ".md"
             base_filename = os.path.basename(asset_filename)
-            image_dir = images_destination_dir
+            image_dir = excalidraw_dir
         elif asset_filename.lower().endswith(".gif"):
             # as gif file has markdown extension at end
             # for now export to svg doesnt work properly, hence manually copying.
             image_dir = content_images_destination_dir
         else:
-            image_dir = images_destination_dir
+            image_dir = regular_images_dir
 
         source_path = file_name_to_path_dict[asset_filename]
         slugified_filename = slugify_filename(base_filename)
