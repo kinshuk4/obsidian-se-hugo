@@ -6,7 +6,10 @@ import sys
 from pathlib import Path
 from obsidian_se_hugo.config import load_config, Config
 from obsidian_se_hugo.hugo_util import copy_markdown_files_using_hugo_section
-from obsidian_se_hugo.markdown_util import get_alternate_link_dict, get_explicit_publish_list
+from obsidian_se_hugo.markdown_util import (
+    get_alternate_link_dict,
+    get_explicit_publish_list,
+)
 from obsidian_se_hugo.file_util import (
     copy_assets,
     create_directory_if_not_exists,
@@ -26,68 +29,75 @@ def configure_logging(log_level=logging.DEBUG):
     logger = logging.getLogger(__name__)
     logger.setLevel(log_level)
     formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-    handler = logging.FileHandler("logs/hierarchial-main.log", mode="a", encoding="utf-8")
+    handler = logging.FileHandler(
+        "logs/hierarchial-main.log", mode="a", encoding="utf-8"
+    )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+    return logger
 
 
 def main():
-    configure_logging()
+    logger = configure_logging()
 
     config: Config = load_config("conf/hconfig.yaml")
 
-    logging.info("Successfully loaded configuration")
+    logger.info("Successfully loaded configuration")
 
     obsidian_vault_path = Path(config.obsidian.root_path)
     if not os.path.isdir(obsidian_vault_path):
-        logging.info("ORIGIN folder does not exist. Aborting!")
+        logger.info("ORIGIN folder does not exist. Aborting!")
         sys.exit(1)
 
     hugo_site_path = Path(config.hugo.root_path)
     if not os.path.isdir(hugo_site_path):
-        logging.info("Destination Parent folder does not exist. Aborting!")
+        logger.info("Destination Parent folder does not exist. Aborting!")
         sys.exit(1)
 
-    logging.info(f"ORIGIN: {obsidian_vault_path}, DESTINATION: {hugo_site_path}")
+    logger.info(f"ORIGIN: {obsidian_vault_path}, DESTINATION: {hugo_site_path}")
 
     hugo_content_path = os.path.join(config.hugo.root_path, config.hugo.content_dir)
 
     for posts_dir in config.hugo.posts_dir_list:
-        logging.info(f"Cleaning the folder: {posts_dir}")
+        logger.info(f"Cleaning the folder: {posts_dir}")
         posts_destination_dir = os.path.join(hugo_content_path, posts_dir)
 
         post_destination = Path(posts_destination_dir)
 
-        print(f"DELETING target notes dir {post_destination}")
+        logger.info(f"DELETING target notes dir {post_destination}")
         delete_target(post_destination)
-        print(f"Creating target notes dir {post_destination}")
+        logger.info(f"Creating target notes dir {post_destination}")
         create_directory_if_not_exists(post_destination)
 
     images_destination_dir = os.path.join(config.hugo.root_path, config.hugo.images_dir)
 
     # Not useful as for me, images are under posts
     images_destination = Path(images_destination_dir)
-    logging.info(f"DELETING images dir {post_destination}")
+    logger.info(f"DELETING images dir {images_destination}")
     delete_target(images_destination)
 
-    images_content_destination_dir = os.path.join(config.hugo.root_path, config.hugo.content_images_dir)
+    images_content_destination_dir = os.path.join(
+        config.hugo.root_path, config.hugo.content_images_dir
+    )
 
     # Not useful as for me, images are under posts
     images_content_destination = Path(images_content_destination_dir)
-    logging.info(f"DELETING images dir {images_content_destination}")
+    logger.info(f"DELETING content images dir {images_content_destination}")
     delete_target(images_content_destination)
 
-    hugo_manual_content_path = os.path.join(config.hugo.root_path, config.hugo.manual_content_dir)
+    hugo_manual_content_path = os.path.join(
+        config.hugo.root_path, config.hugo.manual_content_dir
+    )
     merge_folders(hugo_manual_content_path, hugo_content_path)
 
     initial_explicit_publish_list = get_explicit_publish_list(obsidian_vault_path)
 
     file_name_to_path_dict = create_file_name_to_path_dictionary(obsidian_vault_path)
-    logging.info(f"File name to path dictionary: {len(file_name_to_path_dict)}")
+    logger.info(f"File name to path dictionary: {len(file_name_to_path_dict)}")
 
     # {'Segment Tree Data Structure DS Index': 'https://en.wikipedia.org/wiki/Segment_tree'}
     file_name_to_alternate_link_dict = get_alternate_link_dict(obsidian_vault_path)
-    print(file_name_to_alternate_link_dict)
+    logger.info(f"File name to alternate link dictionary: {file_name_to_alternate_link_dict}")
 
     reachable_links, reachable_assets = grow_publish_list(
         initial_explicit_publish_list, file_name_to_path_dict
@@ -101,8 +111,12 @@ def main():
         file_name_to_alternate_link_dict,
     )
 
-    copy_assets(reachable_assets, images_destination_dir, images_content_destination_dir, file_name_to_path_dict)
-    
+    copy_assets(
+        reachable_assets,
+        images_destination_dir,
+        images_content_destination_dir,
+        file_name_to_path_dict,
+    )
 
 
 if __name__ == "__main__":
