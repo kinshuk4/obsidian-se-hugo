@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-
+import logging
 
 @dataclass
 class ObsidianConfig:
@@ -31,7 +31,7 @@ class Config:
     hugo: HugoConfig
 
 
-def load_config(config_file_path: str) -> Config:
+def load_config(config_file_path: str, logger: logging.Logger = logging.getLogger(__name__)) -> Config:
     """Loads configuration from a YAML file.
 
     Args:
@@ -47,4 +47,5 @@ def load_config(config_file_path: str) -> Config:
         config_data = yaml.safe_load(config_file)
     obsidian_config = ObsidianConfig(**config_data["obsidian"])
     hugo_config = HugoConfig(**config_data["hugo"])
+    logger.debug(f"Loaded configuration successfully: {config_data}")
     return Config(obsidian=obsidian_config, hugo=hugo_config)

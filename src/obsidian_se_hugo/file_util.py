@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 import logging
 import subprocess
 from pathlib import Path
@@ -12,6 +13,18 @@ REGULAR_IMAGES_SUBDIR = "regular"
 
 def get_dir_path(directory_path: str):
     return Path(directory_path)
+
+
+def get_dir_path_or_exit(
+    pathStr: str, logger: logging.Logger = logging.getLogger(__name__)
+):
+    path = Path(pathStr)
+
+    if not os.path.isdir(path):
+        logger.info("Folder {pathStr} does not exist. Aborting!")
+        sys.exit(1)
+
+    return path
 
 
 def delete_target(destination):

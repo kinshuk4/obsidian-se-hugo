@@ -14,6 +14,7 @@ from obsidian_se_hugo.file_util import (
     copy_assets,
     create_directory_if_not_exists,
     delete_target,
+    get_dir_path_or_exit,
     merge_folders,
 )
 from obsidian_se_hugo.graph_util import grow_publish_list
@@ -40,19 +41,13 @@ def configure_logging(log_level=logging.DEBUG):
 def main():
     logger = configure_logging()
 
-    config: Config = load_config("conf/hconfig.yaml")
+    config: Config = load_config("conf/hconfig.yaml", logger=logger)
 
     logger.info("Successfully loaded configuration")
 
-    obsidian_vault_path = Path(config.obsidian.root_path)
-    if not os.path.isdir(obsidian_vault_path):
-        logger.info("ORIGIN folder does not exist. Aborting!")
-        sys.exit(1)
+    obsidian_vault_path = get_dir_path_or_exit(config.obsidian.root_path, logger=logger)
 
-    hugo_site_path = Path(config.hugo.root_path)
-    if not os.path.isdir(hugo_site_path):
-        logger.info("Destination Parent folder does not exist. Aborting!")
-        sys.exit(1)
+    hugo_site_path = get_dir_path_or_exit(config.hugo.root_path, logger=logger)
 
     logger.info(f"ORIGIN: {obsidian_vault_path}, DESTINATION: {hugo_site_path}")
 
