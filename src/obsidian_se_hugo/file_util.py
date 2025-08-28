@@ -27,11 +27,24 @@ def get_dir_path_or_exit(
     return path
 
 
-def delete_target(destination):
+def delete_and_recreate_directory(
+    directory: str, logger: logging.Logger = logging.getLogger(__name__)
+):
+    logger.info(f"Cleaning the folder: {directory}")
+    post_destination = Path(directory)
+    delete_target(post_destination, logger)
+    create_directory_if_not_exists(post_destination, logger=logger)
+
+
+def delete_target(
+    destination_dir: str, logger: logging.Logger = logging.getLogger(__name__)
+):
+    logger.debug(f"Deleting folder: {destination_dir}")
+    destination = Path(destination_dir)
     if os.path.isdir(destination):
         shutil.rmtree(destination)
     else:
-        logging.warning("DESTINATION folder %s does not exist.", str(destination))
+        logger.warning("DESTINATION folder %s does not exist.", str(destination_dir))
 
 
 def delete_file(file_path):
@@ -76,9 +89,11 @@ def has_extension(file_name):
     return ext != ""
 
 
-def create_directory_if_not_exists(dir_path: str):
+def create_directory_if_not_exists(dir_path: str, logger: logging.Logger = logging.getLogger(__name__)):
+    logger.debug(f"Checking if directory exists: {dir_path}")
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
+        logger.info(f"Created directory: {dir_path}")
 
 
 def copy_assets(

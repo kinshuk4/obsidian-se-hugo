@@ -2,7 +2,6 @@
 
 import os
 import logging
-import sys
 from pathlib import Path
 from obsidian_se_hugo.config import load_config, Config
 from obsidian_se_hugo.hugo_util import copy_markdown_files_using_hugo_section
@@ -12,7 +11,7 @@ from obsidian_se_hugo.markdown_util import (
 )
 from obsidian_se_hugo.file_util import (
     copy_assets,
-    create_directory_if_not_exists,
+    delete_and_recreate_directory,
     delete_target,
     get_dir_path_or_exit,
     merge_folders,
@@ -54,31 +53,20 @@ def main():
     hugo_content_path = os.path.join(config.hugo.root_path, config.hugo.content_dir)
 
     for posts_dir in config.hugo.posts_dir_list:
-        logger.info(f"Cleaning the folder: {posts_dir}")
         posts_destination_dir = os.path.join(hugo_content_path, posts_dir)
-
-        post_destination = Path(posts_destination_dir)
-
-        logger.info(f"DELETING target notes dir {post_destination}")
-        delete_target(post_destination)
-        logger.info(f"Creating target notes dir {post_destination}")
-        create_directory_if_not_exists(post_destination)
+        delete_and_recreate_directory(posts_destination_dir, logger)
 
     images_destination_dir = os.path.join(config.hugo.root_path, config.hugo.images_dir)
 
     # Not useful as for me, images are under posts
-    images_destination = Path(images_destination_dir)
-    logger.info(f"DELETING images dir {images_destination}")
-    delete_target(images_destination)
+    delete_target(images_destination_dir, logger=logger)
 
     images_content_destination_dir = os.path.join(
         config.hugo.root_path, config.hugo.content_images_dir
     )
 
     # Not useful as for me, images are under posts
-    images_content_destination = Path(images_content_destination_dir)
-    logger.info(f"DELETING content images dir {images_content_destination}")
-    delete_target(images_content_destination)
+    delete_target(images_content_destination_dir, logger=logger)
 
     hugo_manual_content_path = os.path.join(
         config.hugo.root_path, config.hugo.manual_content_dir
@@ -92,7 +80,9 @@ def main():
 
     # {'Segment Tree Data Structure DS Index': 'https://en.wikipedia.org/wiki/Segment_tree'}
     file_name_to_alternate_link_dict = get_alternate_link_dict(obsidian_vault_path)
-    logger.info(f"File name to alternate link dictionary: {file_name_to_alternate_link_dict}")
+    logger.info(
+        f"File name to alternate link dictionary: {file_name_to_alternate_link_dict}"
+    )
 
     reachable_links, reachable_assets = grow_publish_list(
         initial_explicit_publish_list, file_name_to_path_dict
