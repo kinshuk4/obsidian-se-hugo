@@ -89,7 +89,7 @@ def change_front_matter(
         new_related_problems = []
         for related_problem in related_problems:
             # Try to resolve the file path
-            related_problem_name = extract_single_wiki_link(related_problem)
+            related_problem_name = extract_single_wiki_link(related_problem) + ".md"
             problem_file = file_name_to_path_dict.get(related_problem_name)
             if problem_file:
                 is_related_problem_published = is_published(problem_file)
@@ -336,7 +336,7 @@ def copy_markdown_files_in_hugo_format(
 
 
 def copy_markdown_files_using_hugo_section(
-    reachable_links: set[str],
+    reachable_links: list[str],
     hugo_content_dir: str,
     file_name_to_path_dict: dict[str, str],
     allowed_keys=set[str](),

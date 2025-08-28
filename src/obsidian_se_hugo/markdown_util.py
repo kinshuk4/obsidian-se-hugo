@@ -35,7 +35,7 @@ def get_explicit_publish_list(
         if is_published(file, publish_key):
             logging.info("TO PUBLISH: %s", str(file))
             to_publish.append(str(file))
-    return to_publish
+    return sorted(to_publish)
 
 
 def get_alternate_link_dict(origin: Path, publish_key: str = "published") -> list[str]:

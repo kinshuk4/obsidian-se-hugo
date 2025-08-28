@@ -97,7 +97,7 @@ def create_directory_if_not_exists(dir_path: str, logger: logging.Logger = loggi
 
 
 def copy_assets(
-    asset_file_names: set[str],
+    asset_file_names: list[str],
     images_destination_dir: str,
     content_images_destination_dir: str,
     file_name_to_path_dict: dict[str, str],
