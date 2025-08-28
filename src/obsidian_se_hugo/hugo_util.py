@@ -25,6 +25,7 @@ default_allowed_frontmatter_keys_in_hugo = {
     "curated_lists",
     "curated_list_map",
     "problem_links",
+    "related_problems"
 }
 
 topic_to_category = {
