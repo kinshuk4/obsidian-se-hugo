@@ -3,7 +3,11 @@ import re
 import frontmatter
 from datetime import datetime
 import os
-from obsidian_se_hugo.markdown_util import get_hugo_section
+from obsidian_se_hugo.markdown_util import (
+    extract_single_wiki_link,
+    get_hugo_section,
+    is_published,
+)
 from obsidian_se_hugo.constants import code_block_pattern, inline_code_pattern
 from slugify import slugify
 
@@ -25,7 +29,7 @@ default_allowed_frontmatter_keys_in_hugo = {
     "curated_lists",
     "curated_list_map",
     "problem_links",
-    "related_problems"
+    "related_problems",
 }
 
 topic_to_category = {
@@ -43,7 +47,10 @@ def convert_date_to_iso(date_val: str | datetime) -> str:
 
 
 def change_front_matter(
-    post: frontmatter.Post, allowed_keys: set[str], input_file_path: str
+    post: frontmatter.Post,
+    allowed_keys: set[str],
+    input_file_path: str,
+    file_name_to_path_dict: dict[str, str],
 ) -> None:
     if "title" not in post.metadata:
         raise ValueError(f"Title is missing in front matter in {input_file_path}")
@@ -73,6 +80,38 @@ def change_front_matter(
         aliases = post.metadata["aliases"]
         if aliases is not None and isinstance(aliases, list):
             post.metadata["aliases"] = [slugify(alias) for alias in aliases]
+
+    if (
+        "related_problems" in post.metadata
+        and post.metadata["related_problems"] is not None
+    ):
+        related_problems = post.metadata["related_problems"]
+        new_related_problems = []
+        for related_problem in related_problems:
+            # Try to resolve the file path
+            related_problem_name = extract_single_wiki_link(related_problem)
+            problem_file = file_name_to_path_dict.get(related_problem_name)
+            if problem_file:
+                is_related_problem_published = is_published(problem_file)
+                if is_related_problem_published:
+                    hugo_section = get_hugo_section(problem_file)
+                    slug = slugify_filename(
+                        os.path.splitext(os.path.basename(problem_file))[0]
+                    )
+                    if hugo_section:
+                        new_related_problems.append(f"{hugo_section}/{slug}.md")
+                    else:
+                        raise ValueError(
+                            f"Related problem '{related_problem_name}' for '{input_file_path}' doesn't have a Hugo section"
+                        )
+                else:
+                    raise ValueError(
+                        f"Related problem '{related_problem_name}' not published for '{input_file_path}'"
+                    )
+            else:
+                raise ValueError(
+                    f"Related problem '{related_problem_name}' not found for '{input_file_path}'"
+                )
 
     # Remove extra keys from the markdown
     allowed_keys = allowed_keys.union(default_allowed_frontmatter_keys_in_hugo)
@@ -223,10 +262,11 @@ def convert_markdown_file_to_hugo_format(
     output_file_path: str,
     allowed_keys: set[str] = set(),
     file_name_to_alternate_link_dict: dict[str, str] = {},
+    file_name_to_path_dict: dict[str, str] = {},
 ) -> None:
     post = frontmatter.load(input_file_path)
     try:
-        change_front_matter(post, allowed_keys, input_file_path)
+        change_front_matter(post, allowed_keys, input_file_path, file_name_to_path_dict)
     except Exception as e:
         logging.error(f"Error in front matter of {input_file_path}: {e}")
         raise e
@@ -313,5 +353,9 @@ def copy_markdown_files_using_hugo_section(
             continue
         new_path = os.path.join(hugo_content_dir, notes_destination_dir, new_file_name)
         convert_markdown_file_to_hugo_format(
-            file_path, new_path, allowed_keys, file_name_to_alternate_link_dict
+            file_path,
+            new_path,
+            allowed_keys,
+            file_name_to_alternate_link_dict,
+            file_name_to_path_dict=file_name_to_path_dict,
         )
