@@ -112,6 +112,7 @@ def change_front_matter(
                 raise ValueError(
                     f"Related problem '{related_problem_name}' not found for '{input_file_path}'"
                 )
+        post.metadata["related_problems"] = new_related_problems
 
     # Remove extra keys from the markdown
     allowed_keys = allowed_keys.union(default_allowed_frontmatter_keys_in_hugo)
