@@ -136,8 +136,6 @@ def replace_wikilinks_with_markdown_links(
     file_name_to_path_dict: dict[str, str] = {},
 ) -> str:
     # Function to convert wiki link to Hugo format
-    current_file_hugo_section = get_hugo_section(input_file_path) if input_file_path else None
-
     def is_inside_code_block(start_index: int, end_index: int, text: str) -> bool:
         """
         Checks if the given indices fall inside a code block or inline code.
@@ -170,41 +168,68 @@ def replace_wikilinks_with_markdown_links(
             external_link = file_name_to_alternate_link_dict[link]
             return f"[{alias}]({external_link})"
 
-        slugified_link = slugify_filename(link)
+        link_slug = slugify_filename(link)
         section_slug = slugify_section(section) if section else ""
 
         if section_slug:
             section_slug = "#" + section_slug
 
-        if slugified_link.lower().endswith(".excalidraw"):
-            slugified_link = re.sub(
-                r"\.excalidraw$", ".excalidraw.png", slugified_link, flags=re.IGNORECASE
+        if link_slug.lower().endswith(".excalidraw"):
+            link_slug = re.sub(
+                r"\.excalidraw$", ".excalidraw.png", link_slug, flags=re.IGNORECASE
             )
             from obsidian_se_hugo.file_util import EXCALIDRAW_SUBDIR
 
             return "[{}]({})".format(
-                alias, f"/images/obsidian/{EXCALIDRAW_SUBDIR}/" + slugified_link
+                alias, f"/images/obsidian/{EXCALIDRAW_SUBDIR}/" + link_slug
             )
 
-        if re.search(r"\.(png|jpg|jpeg|gif|svg|webp)$", slugified_link, re.IGNORECASE):
+        if re.search(r"\.(png|jpg|jpeg|gif|svg|webp)$", link_slug, re.IGNORECASE):
             # Determine the appropriate subdirectory based on file type
-            if slugified_link.lower().endswith(".gif"):
+            if link_slug.lower().endswith(".gif"):
                 # GIF files go to content images directory
-                return "[{}]({})".format(alias, "/images/content/" + slugified_link)
+                return "[{}]({})".format(alias, "/images/content/" + link_slug)
             else:
                 # Regular images go to regular subdirectory
                 from obsidian_se_hugo.file_util import REGULAR_IMAGES_SUBDIR
 
                 return "[{}]({})".format(
-                    alias, f"/images/obsidian/{REGULAR_IMAGES_SUBDIR}/" + slugified_link
+                    alias, f"/images/obsidian/{REGULAR_IMAGES_SUBDIR}/" + link_slug
                 )
 
-        if not slugified_link:
+        if not link_slug:
             # Handle links like [[#header]]
             hugo_link = f"{section_slug}"
         else:
             section_slug = "/" + section_slug if section_slug else ""
-            hugo_link = f"{slugified_link}.md{section_slug}"
+
+            current_file_hugo_section = (
+                get_hugo_section(input_file_path) if input_file_path else None
+            )
+            outgoing_file_name = link + ".md"
+            outgoing_file_path = file_name_to_path_dict.get(outgoing_file_name)
+            outgoing_hugo_section = None
+            if outgoing_file_path and os.path.exists(outgoing_file_path):
+                outgoing_hugo_section = get_hugo_section(outgoing_file_path)
+
+            def is_cs_problems(section):
+                return section and section.startswith("cs/problems")
+
+            if (
+                outgoing_hugo_section
+                and not (
+                    is_cs_problems(outgoing_hugo_section)
+                    and is_cs_problems(current_file_hugo_section)
+                )
+                and outgoing_hugo_section != current_file_hugo_section
+            ):
+                if is_cs_problems(outgoing_hugo_section):
+                    hugo_link = f"/cs/problems/{link_slug}.md{section_slug}"
+                else:
+                    hugo_link = f"/{outgoing_hugo_section}/{link_slug}.md{section_slug}"
+            else:
+                hugo_link = f"{link_slug}.md{section_slug}"
+
         # Replace with your actual Hugo shortcode format for links.
         # Here I'm assuming a hypothetical Hugo shortcode for links like: {{< link "url" "text" >}}
         return '[{}]({{{{< relref "{}" >}}}})'.format(alias, hugo_link)
@@ -294,7 +319,10 @@ def convert_markdown_file_to_hugo_format(
     content = post.content
     # replace wikilinks with markdown links
     new_content = replace_wikilinks_with_markdown_links(
-        content, file_name_to_alternate_link_dict
+        content,
+        file_name_to_alternate_link_dict,
+        input_file_path,
+        file_name_to_path_dict,
     )
     # replace youtube links with hugo format
     new_content = replace_youtube_links_with_hugo_format_links(new_content)
