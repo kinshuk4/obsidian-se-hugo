@@ -99,7 +99,10 @@ def change_front_matter(
                         os.path.splitext(os.path.basename(problem_file))[0]
                     )
                     if hugo_section:
-                        new_related_problems.append(f"{hugo_section}/{slug}.md")
+                        if hugo_section.startswith("cs/problems"):
+                            new_related_problems.append(f"/cs/problems/{slug}")
+                        else:
+                            new_related_problems.append(f"/{hugo_section}/{slug}")
                     else:
                         raise ValueError(
                             f"Related problem '{related_problem_name}' for '{input_file_path}' doesn't have a Hugo section"
@@ -127,9 +130,14 @@ youtube_pattern = r"!\[(.*?)\]\((https:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0
 
 
 def replace_wikilinks_with_markdown_links(
-    content: str, file_name_to_alternate_link_dict: dict[str, str] = {}
+    content: str,
+    file_name_to_alternate_link_dict: dict[str, str] = {},
+    input_file_path: str = "",
+    file_name_to_path_dict: dict[str, str] = {},
 ) -> str:
     # Function to convert wiki link to Hugo format
+    current_file_hugo_section = get_hugo_section(input_file_path) if input_file_path else None
+
     def is_inside_code_block(start_index: int, end_index: int, text: str) -> bool:
         """
         Checks if the given indices fall inside a code block or inline code.
@@ -162,41 +170,41 @@ def replace_wikilinks_with_markdown_links(
             external_link = file_name_to_alternate_link_dict[link]
             return f"[{alias}]({external_link})"
 
-        link = slugify_filename(link)
+        slugified_link = slugify_filename(link)
         section_slug = slugify_section(section) if section else ""
 
         if section_slug:
             section_slug = "#" + section_slug
 
-        if link.lower().endswith(".excalidraw"):
-            link = re.sub(
-                r"\.excalidraw$", ".excalidraw.png", link, flags=re.IGNORECASE
+        if slugified_link.lower().endswith(".excalidraw"):
+            slugified_link = re.sub(
+                r"\.excalidraw$", ".excalidraw.png", slugified_link, flags=re.IGNORECASE
             )
             from obsidian_se_hugo.file_util import EXCALIDRAW_SUBDIR
 
             return "[{}]({})".format(
-                alias, f"/images/obsidian/{EXCALIDRAW_SUBDIR}/" + link
+                alias, f"/images/obsidian/{EXCALIDRAW_SUBDIR}/" + slugified_link
             )
 
-        if re.search(r"\.(png|jpg|jpeg|gif|svg|webp)$", link, re.IGNORECASE):
+        if re.search(r"\.(png|jpg|jpeg|gif|svg|webp)$", slugified_link, re.IGNORECASE):
             # Determine the appropriate subdirectory based on file type
-            if link.lower().endswith(".gif"):
+            if slugified_link.lower().endswith(".gif"):
                 # GIF files go to content images directory
-                return "[{}]({})".format(alias, "/images/content/" + link)
+                return "[{}]({})".format(alias, "/images/content/" + slugified_link)
             else:
                 # Regular images go to regular subdirectory
                 from obsidian_se_hugo.file_util import REGULAR_IMAGES_SUBDIR
 
                 return "[{}]({})".format(
-                    alias, f"/images/obsidian/{REGULAR_IMAGES_SUBDIR}/" + link
+                    alias, f"/images/obsidian/{REGULAR_IMAGES_SUBDIR}/" + slugified_link
                 )
 
-        if not link:
+        if not slugified_link:
             # Handle links like [[#header]]
             hugo_link = f"{section_slug}"
         else:
             section_slug = "/" + section_slug if section_slug else ""
-            hugo_link = f"{link}.md{section_slug}"
+            hugo_link = f"{slugified_link}.md{section_slug}"
         # Replace with your actual Hugo shortcode format for links.
         # Here I'm assuming a hypothetical Hugo shortcode for links like: {{< link "url" "text" >}}
         return '[{}]({{{{< relref "{}" >}}}})'.format(alias, hugo_link)
@@ -258,6 +266,17 @@ def insert_code_tabs(content: str) -> str:
     return updated_content
 
 
+def insert_related_problems(content: str) -> str:
+    # Insert before the first '## Solution'
+    pattern = r"(^|\n)(## Solution)"
+    replacement = r"\1{{< related_problems_expander >}}\n\2"
+    new_content, count = re.subn(pattern, replacement, content, count=1)
+    if count == 0:
+        # If '## Solution' not found, optionally insert at the end or skip
+        pass
+    return new_content
+
+
 def convert_markdown_file_to_hugo_format(
     input_file_path: str,
     output_file_path: str,
@@ -281,6 +300,15 @@ def convert_markdown_file_to_hugo_format(
     new_content = replace_youtube_links_with_hugo_format_links(new_content)
     new_content = replace_latex_syntax(new_content)
     new_content = insert_code_tabs(new_content)
+
+    # Insert related_posts partial if conditions are met
+    hugo_section = get_hugo_section(input_file_path)
+    if (
+        hugo_section
+        and hugo_section.startswith("cs/problems/")
+        and post.metadata.get("related_problems")
+    ):
+        new_content = insert_related_problems(new_content)
 
     post.content = new_content
 
