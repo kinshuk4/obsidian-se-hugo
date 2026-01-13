@@ -258,13 +258,14 @@ def replace_latex_syntax(content: str) -> str:
 
     def latex_replacer(match: re.Match) -> str:
         latex_content = match.group(1)
-        # Replace "\\" with "\\\"
-        updated_latex_content = latex_content.replace("\\\\", "\\\\\\")
+        # Replace "\\" with "\\\\"
+        updated_latex_content = latex_content.replace("\\\\", "\\\\\\\\")
         updated_latex_content = re.sub(r"\\\$", r"\\\\$", updated_latex_content)
         updated_latex_content = re.sub(r"\\\#", r"\\\\#", updated_latex_content)
         updated_latex_content = updated_latex_content.replace(
             "\\cellcolor", "\\colorbox"
         )
+        updated_latex_content = re.sub(r"YellowOrange", r"orange", updated_latex_content)
         return f"$${updated_latex_content}$$"
 
     # Regex pattern to find LaTeX expressions between $$
